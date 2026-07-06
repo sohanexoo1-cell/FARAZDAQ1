@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoadTrack Pro - النظام السحابي المتجاوب</title>
-    <!-- Tailwind CSS -->
+    <title>LoadTrack Pro - النظام السحابي</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- SheetJS Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- خط القاهرة -->
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Cairo', sans-serif; }
@@ -21,7 +21,6 @@
       x-data="loadTrackCloudApp()" 
       x-init="initFirebase()">
 
-    <!-- ================= 1. شاشة تسجيل الدخول الموحدة ================= -->
     <div x-show="!isLoggedIn" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4">
         <div class="bg-slate-800/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-2xl max-w-md w-full space-y-6 border border-slate-700 transition-all">
             <div class="text-center space-y-2">
@@ -46,10 +45,7 @@
         </div>
     </div>
 
-    <!-- ================= 2. الواجهة الرئيسية الهجينة الذكية ================= -->
     <div x-show="isLoggedIn" x-cloak class="flex-1 flex flex-col">
-        
-        <!-- الهيدر العلوي الموحد -->
         <header class="bg-slate-950 text-white shadow-xl sticky top-0 z-50 border-b border-slate-800">
             <div class="max-w-7xl mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
                 <div class="flex items-center gap-2 sm:gap-3">
@@ -65,16 +61,12 @@
             </div>
         </header>
 
-        <!-- المحتوى الرئيسي المتجاوب -->
         <main class="max-w-7xl mx-auto px-3 sm:px-4 py-6 space-y-6 w-full flex-1">
-
-            <!-- حالة المادة الحالية السحابية -->
             <div class="bg-gradient-to-r from-blue-700 to-indigo-800 p-4 sm:p-5 rounded-2xl text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-blue-600/30">
                 <div>
                     <h3 class="text-xs font-bold text-blue-200 uppercase tracking-wider">📋 مادة التحميل النشطة بالموقع (سحابي):</h3>
                     <p class="text-xl sm:text-2xl font-black text-white mt-0.5" x-text="currentMaterial"></p>
                 </div>
-                <!-- تحكم المهندس فقط بتغيير المواد لجميع الأجهزة تلقائياً -->
                 <div class="flex flex-wrap gap-1.5 w-full md:w-auto" x-show="currentUser.role === 'engineer'">
                     <template x-for="material in materials">
                         <button @click="changeMaterial(material)"
@@ -85,7 +77,6 @@
                 </div>
             </div>
 
-            <!-- كروت الإحصائيات -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-700/60">
                     <span class="text-slate-400 font-bold text-xs block">إجمالي النقلات السحابية</span>
@@ -101,7 +92,6 @@
                 </div>
             </div>
 
-            <!-- إضافة وتعديل القلابات -->
             <div x-show="currentUser.role === 'engineer'" class="bg-slate-800 p-4 sm:p-6 rounded-2xl border border-slate-700 space-y-4">
                 <h2 class="text-xs sm:text-sm font-black text-slate-200">🛠️ إدارة اسطول القلابات (خاص بالمهندس)</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
@@ -124,7 +114,6 @@
                 </div>
             </div>
 
-            <!-- أزرار الحمولات الميدانية السريعة بلمسة واحدة -->
             <div class="space-y-3">
                 <h2 class="text-[11px] font-black text-slate-400 uppercase tracking-wider">🦺 تسجيل حمولة بضغطة واحدة:</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
@@ -159,19 +148,17 @@
                 </div>
             </div>
 
-            <!-- عرض السجلات وحالة المزامنة والتصدير -->
             <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
                 <div class="p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/40 border-b border-slate-700">
                     <div>
                         <h2 class="font-black text-white text-sm sm:text-base">📊 سجل حركة النقل العام الفورية والمزامنة</h2>
-                        <p class="text-[11px] text-slate-400 mt-0.5">يتم تحديث الجدول تلقائياً بدون تحديث الصفحة.</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">يتم تحديث الجدول تلقائياً وبشكل حي لجميع الأجهزة المتصلة.</p>
                     </div>
                     <button x-show="currentUser.role === 'engineer'" @click="exportToExcel()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg transition-all">
                         <span>📥 تصدير كشف حساب ممتاز (Excel)</span>
                     </button>
                 </div>
 
-                <!-- نسخة الكمبيوتر والتابلت -->
                 <div class="hidden md:block overflow-x-auto">
                     <table class="w-full text-right border-collapse">
                         <thead>
@@ -201,7 +188,6 @@
                     </table>
                 </div>
 
-                <!-- نسخة الهاتف المحمول -->
                 <div class="block md:hidden divide-y divide-slate-700/60 bg-slate-900/30">
                     <template x-for="(load, index) in cloudLoads" :key="index">
                         <div class="p-4 space-y-2 text-xs font-bold">
@@ -228,11 +214,7 @@
         </main>
     </div>
 
-    <!-- تفعيل مكتبات خدمات الفايربيس السحابية الرسمية بجافا سكريبت -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+    <script>
         window.loadTrackCloudApp = function() {
             return {
                 pinCode: '',
@@ -247,36 +229,41 @@
                 db: null,
 
                 initFirebase() {
-                    // تم إزالة الأجزاء المقطوعة ووضع نصوص برمجية صالحة للقراءة لمنع تجمد الشاشة
-                    const firebaseConfig = {
-                        apiKey: "AIzaSyFakeKeyPlaceholderForInitializationOnly",
-                        authDomain: "loadtrack-pro.firebaseapp.com",
-                        projectId: "loadtrack-pro",
-                        storageBucket: "loadtrack-pro.appspot.com",
-                        messagingSenderId: "123456789",
-                        appId: "1:1234:web:abcd"
+                    // ✅ تم دمج كود Firebase الحقيقي الخاص بمشروعك هنا مباشرة
+                    var firebaseConfig = {
+                        apiKey: "AIzaSyB_gZyGGMeNg_jLIo1YbQ9tfmHyTdBBebs",
+                        authDomain: "trackss-pro.firebaseapp.com",
+                        databaseURL: "https://trackss-pro-default-rtdb.firebaseio.com",
+                        projectId: "trackss-pro",
+                        storageBucket: "trackss-pro.firebasestorage.app",
+                        messagingSenderId: "223908555301",
+                        appId: "1:223908555301:web:317f4b1ebff450d367adcc",
+                        measurementId: "G-X3Z5W59X6K"
                     };
 
                     try {
-                        const app = initializeApp(firebaseConfig);
-                        this.db = getFirestore(app);
+                        // تفعيل الاتصال بقواعد بيانات جوجل السحابية المباشرة
+                        firebase.initializeApp(firebaseConfig);
+                        this.db = firebase.firestore();
 
-                        onSnapshot(collection(this.db, "trucks"), (snapshot) => {
+                        // مزامنة حية وفورية للقلابات بين جميع هواتف وحواسيب العمل
+                        this.db.collection("trucks").onSnapshot((snapshot) => {
                             this.trucks = [];
                             snapshot.forEach((doc) => {
-                                this.trucks.push({ id: doc.id, ...doc.data() });
+                                this.trucks.push(Object.assign({ id: doc.id }, doc.data()));
                             });
                         });
 
-                        const loadsQuery = query(collection(this.db, "loads"), orderBy("timestamp", "desc"));
-                        onSnapshot(loadsQuery, (snapshot) => {
+                        // مزامنة النقلات والحمولات لحظياً للجميع وبدون تحديث الصفحة
+                        this.db.collection("loads").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
                             this.cloudLoads = [];
                             snapshot.forEach((doc) => {
                                 this.cloudLoads.push(doc.data());
                             });
                         });
 
-                        onSnapshot(collection(this.db, "siteSettings"), (snapshot) => {
+                        // مزامنة نوع المواد النشطة بين المهندس والمراقبين ميدانياً
+                        this.db.collection("siteSettings").onSnapshot((snapshot) => {
                             snapshot.forEach((doc) => {
                                 if (doc.id === "current") {
                                     this.currentMaterial = doc.data().material;
@@ -284,7 +271,7 @@
                             });
                         });
                     } catch (error) {
-                        console.error("Firebase setup warning: ", error);
+                        console.error("Firebase Initialization Error: ", error);
                     }
                 },
 
@@ -312,23 +299,21 @@
                     this.currentUser = { name: '', role: '' };
                 },
 
-                async changeMaterial(material) {
+                changeMaterial(material) {
                     if (this.currentUser.role !== 'engineer') return;
                     this.currentMaterial = material;
-                    try {
-                        await setDoc(doc(this.db, "siteSettings", "current"), { material: material });
-                    } catch(e) {}
+                    this.db.collection("siteSettings").doc("current").set({ material: material }).catch(function(){});
                 },
 
-                async registerLoad(truck) {
-                    const now = new Date();
-                    const timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                    const dateStr = now.toLocaleDateString('ar-EG');
+                registerLoad(truck) {
+                    var now = new Date();
+                    var timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    var dateStr = now.toLocaleDateString('ar-EG');
                     
-                    const currentTruckLoads = this.cloudLoads.filter(l => l.truckNumber === truck.number).length;
-                    const nextLoadNumber = currentTruckLoads + 1;
+                    var currentTruckLoads = this.cloudLoads.filter(l => l.truckNumber === truck.number).length;
+                    var nextLoadNumber = currentTruckLoads + 1;
 
-                    const newLoad = {
+                    var newLoad = {
                         truckNumber: truck.number,
                         driverName: truck.driver,
                         capacity: truck.capacity,
@@ -340,11 +325,9 @@
                         timestamp: now.getTime()
                     };
 
-                    try {
-                        await addDoc(collection(this.db, "loads"), newLoad);
-                    } catch(e) {
+                    this.db.collection("loads").add(newLoad).catch((e) => {
                         this.cloudLoads.unshift(newLoad);
-                    }
+                    });
                 },
 
                 getTruckLoadCount(truckNumber) {
@@ -355,29 +338,23 @@
                     return this.cloudLoads.reduce((sum, load) => sum + load.capacity, 0);
                 },
 
-                async saveTruck() {
+                saveTruck() {
                     if (this.currentUser.role !== 'engineer') return;
                     if (!this.truckForm.number.trim() || !this.truckForm.driver.trim() || !this.truckForm.capacity) {
                         alert("يرجى إكمال خانات القلاب الفنية.");
                         return;
                     }
 
-                    const truckData = {
+                    var truckData = {
                         number: this.truckForm.number,
                         driver: this.truckForm.driver,
                         capacity: Number(this.truckForm.capacity)
                     };
 
-                    try {
-                        if (this.truckForm.id) {
-                            await setDoc(doc(this.db, "trucks", this.truckForm.id), truckData);
-                        } else {
-                            await addDoc(collection(this.db, "trucks"), truckData);
-                        }
-                    } catch(e) {
-                        if (!this.truckForm.id) {
-                            this.trucks.push({ id: Date.now().toString(), ...truckData });
-                        }
+                    if (this.truckForm.id) {
+                        this.db.collection("trucks").doc(this.truckForm.id).set(truckData).catch(function(){});
+                    } else {
+                        this.db.collection("trucks").add(truckData).catch(function(){});
                     }
 
                     this.resetTruckForm();
@@ -385,17 +362,13 @@
 
                 editTruck(truck) {
                     if (this.currentUser.role !== 'engineer') return;
-                    this.truckForm = { ...truck };
+                    this.truckForm = Object.assign({}, truck);
                 },
 
-                async deleteTruck(id) {
+                deleteTruck(id) {
                     if (this.currentUser.role !== 'engineer') return;
                     if (confirm("هل أنت متأكد من حذف القلاب سحابياً؟")) {
-                        try {
-                            await deleteDoc(doc(this.db, "trucks", id));
-                        } catch(e) {
-                            this.trucks = this.trucks.filter(t => t.id !== id);
-                        }
+                        this.db.collection("trucks").doc(id).delete().catch(function(){});
                     }
                 },
 
@@ -406,7 +379,7 @@
                 exportToExcel() {
                     if (this.currentUser.role !== 'engineer') return;
                     
-                    const rows = this.cloudLoads.map(l => ({
+                    var rows = this.cloudLoads.map(l => ({
                         'رقم النقلة للقلاب': l.loadNumber,
                         'رقم اللوحة الفني': l.truckNumber,
                         'اسم السائق الثابت': l.driverName,
@@ -417,8 +390,8 @@
                         'المسؤول عن التوثيق': l.recordedBy
                     }));
 
-                    const worksheet = XLSX.utils.json_to_sheet(rows);
-                    const totalVolume = this.getTotalVolume();
+                    var worksheet = XLSX.utils.json_to_sheet(rows);
+                    var totalVolume = this.getTotalVolume();
                     
                     XLSX.utils.sheet_add_json(worksheet, [{
                         'رقم النقلة للقلاب': 'الإجمالي الكلي الحجمي:',
@@ -434,9 +407,9 @@
                     if(!worksheet['!views']) worksheet['!views'] = [{}];
                     worksheet['!views'][0].RTL = true;
 
-                    const workbook = XLSX.utils.book_new();
+                    var workbook = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(workbook, worksheet, "تقرير الحمولات والمواد السحابي");
-                    XLSX.writeFile(workbook, `كشف_حساب_حمولات_سحابي_${new Date().toISOString().slice(0,10)}.xlsx`);
+                    XLSX.writeFile(workbook, "كشف_حساب_حمولات_سحابي.xlsx");
                 }
             }
         }
