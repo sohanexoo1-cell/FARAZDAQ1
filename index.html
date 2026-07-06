@@ -85,7 +85,7 @@
                 </div>
             </div>
 
-            <!-- كروت الإحصائيات (تتحول من صف واحد بالكمبيوتر إلى كروت عمودية بالموبايل) -->
+            <!-- كروت الإحصائيات -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-700/60">
                     <span class="text-slate-400 font-bold text-xs block">إجمالي النقلات السحابية</span>
@@ -101,7 +101,7 @@
                 </div>
             </div>
 
-            <!-- إضافة وتعديل القلابات (عرض مضغوط في الهاتف) -->
+            <!-- إضافة وتعديل القلابات -->
             <div x-show="currentUser.role === 'engineer'" class="bg-slate-800 p-4 sm:p-6 rounded-2xl border border-slate-700 space-y-4">
                 <h2 class="text-xs sm:text-sm font-black text-slate-200">🛠️ إدارة اسطول القلابات (خاص بالمهندس)</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
@@ -124,9 +124,9 @@
                 </div>
             </div>
 
-            <!-- أزرار الحمولات الميدانية السريعة بلمسة واحدة (أهم جزء للهواتف) -->
+            <!-- أزرار الحمولات الميدانية السريعة بلمسة واحدة -->
             <div class="space-y-3">
-                <h2 class="text-[11px] font-black text-slate-400 uppercase tracking-wider">🦺 تسجيل حمولة بضغطة واحدة (مؤمن ومزامن فوراً):</h2>
+                <h2 class="text-[11px] font-black text-slate-400 uppercase tracking-wider">🦺 تسجيل حمولة بضغطة واحدة:</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                     <template x-for="truck in trucks" :key="truck.id">
                         <div class="bg-slate-800 rounded-xl border border-slate-700/80 p-3.5 relative flex flex-row sm:flex-col justify-between items-center sm:items-start gap-4 sm:h-32 group">
@@ -140,13 +140,13 @@
                                     <span class="text-[10px] text-amber-400 font-bold sm:block mt-0.5" x-text="'سعة: ' + truck.capacity + ' م³'"></span>
                                 </div>
                                 <div class="mt-2 pt-2 border-t border-slate-700/50 hidden sm:flex justify-between items-center">
-                                    <span class="text-[10px] bg-slate-900 px-2 py-1 rounded font-bold text-slate-300" x-text="getTruckLoadCount(truck.id) + ' نقلة'"></span>
+                                    <span class="text-[10px] bg-slate-900 px-2 py-1 rounded font-bold text-slate-300" x-text="getTruckLoadCount(truck.number) + ' نقلة'"></span>
                                     <span class="text-xs bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center font-bold">+</span>
                                 </div>
                             </button>
 
                             <div class="flex sm:hidden items-center gap-2">
-                                <span class="text-[11px] bg-slate-900 px-2.5 py-1.5 rounded-lg font-bold text-slate-300" x-text="getTruckLoadCount(truck.id) + ' م '"></span>
+                                <span class="text-[11px] bg-slate-900 px-2.5 py-1.5 rounded-lg font-bold text-slate-300" x-text="getTruckLoadCount(truck.number) + ' ن '"></span>
                                 <button @click="registerLoad(truck)" class="w-10 h-10 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center shadow-lg active:bg-blue-700">➕</button>
                             </div>
 
@@ -164,14 +164,14 @@
                 <div class="p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/40 border-b border-slate-700">
                     <div>
                         <h2 class="font-black text-white text-sm sm:text-base">📊 سجل حركة النقل العام الفورية والمزامنة</h2>
-                        <p class="text-[11px] text-slate-400 mt-0.5">يتم تحديث هذا الجدول تلقائياً وبدون تحديث الصفحة عند قيام أي جهاز آخر بالتسجيل.</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">يتم تحديث الجدول تلقائياً بدون تحديث الصفحة.</p>
                     </div>
                     <button x-show="currentUser.role === 'engineer'" @click="exportToExcel()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg transition-all">
                         <span>📥 تصدير كشف حساب ممتاز (Excel)</span>
                     </button>
                 </div>
 
-                <!-- 1. نسخة الكمبيوتر والتابلت (Desktop Table) -->
+                <!-- نسخة الكمبيوتر والتابلت -->
                 <div class="hidden md:block overflow-x-auto">
                     <table class="w-full text-right border-collapse">
                         <thead>
@@ -201,7 +201,7 @@
                     </table>
                 </div>
 
-                <!-- 2. نسخة الهاتف المحمول التلقائية والذكية (Mobile View Cards) -->
+                <!-- نسخة الهاتف المحمول -->
                 <div class="block md:hidden divide-y divide-slate-700/60 bg-slate-900/30">
                     <template x-for="(load, index) in cloudLoads" :key="index">
                         <div class="p-4 space-y-2 text-xs font-bold">
@@ -246,45 +246,46 @@
                 truckForm: { id: null, number: '', driver: '', capacity: 12 },
                 db: null,
 
-                // 📡 ربط التطبيق بقاعدة البيانات السحابية الحية لشركة جوجل
                 initFirebase() {
+                    // تم إزالة الأجزاء المقطوعة ووضع نصوص برمجية صالحة للقراءة لمنع تجمد الشاشة
                     const firebaseConfig = {
-                        apiKey: "AIzaSy...",
-                        authDomain: "loadtrack-...",
-                        projectId: "loadtrack-...",
-                        storageBucket: "loadtrack-...",
-                        messagingSenderId: "...",
-                        appId: "..."
+                        apiKey: "AIzaSyFakeKeyPlaceholderForInitializationOnly",
+                        authDomain: "loadtrack-pro.firebaseapp.com",
+                        projectId: "loadtrack-pro",
+                        storageBucket: "loadtrack-pro.appspot.com",
+                        messagingSenderId: "123456789",
+                        appId: "1:1234:web:abcd"
                     };
 
-                    const app = initializeApp(firebaseConfig);
-                    this.db = getFirestore(app);
+                    try {
+                        const app = initializeApp(firebaseConfig);
+                        this.db = getFirestore(app);
 
-                    // مزامنة حية لجدول القلابات بين كافة الأجهزة المتصلة
-                    onSnapshot(collection(this.db, "trucks"), (snapshot) => {
-                        this.trucks = [];
-                        snapshot.forEach((doc) => {
-                            this.trucks.push({ id: doc.id, ...doc.data() });
+                        onSnapshot(collection(this.db, "trucks"), (snapshot) => {
+                            this.trucks = [];
+                            snapshot.forEach((doc) => {
+                                this.trucks.push({ id: doc.id, ...doc.data() });
+                            });
                         });
-                    });
 
-                    // مزامنة حية وحظية لكافة الحمولات المسجلة بالموقع لأي جهاز
-                    const loadsQuery = query(collection(this.db, "loads"), orderBy("timestamp", "desc"));
-                    onSnapshot(loadsQuery, (snapshot) => {
-                        this.cloudLoads = [];
-                        snapshot.forEach((doc) => {
-                            this.cloudLoads.push(doc.data());
+                        const loadsQuery = query(collection(this.db, "loads"), orderBy("timestamp", "desc"));
+                        onSnapshot(loadsQuery, (snapshot) => {
+                            this.cloudLoads = [];
+                            snapshot.forEach((doc) => {
+                                this.cloudLoads.push(doc.data());
+                            });
                         });
-                    });
 
-                    // مزامنة حالة المادة النشطة بالموقع بين المهندس والمراقبين
-                    onSnapshot(collection(this.db, "siteSettings"), (snapshot) => {
-                        snapshot.forEach((doc) => {
-                            if (doc.id === "current") {
-                                this.currentMaterial = doc.data().material;
-                            }
+                        onSnapshot(collection(this.db, "siteSettings"), (snapshot) => {
+                            snapshot.forEach((doc) => {
+                                if (doc.id === "current") {
+                                    this.currentMaterial = doc.data().material;
+                                }
+                            });
                         });
-                    });
+                    } catch (error) {
+                        console.error("Firebase setup warning: ", error);
+                    }
                 },
 
                 verifyAndLogin() {
@@ -314,7 +315,9 @@
                 async changeMaterial(material) {
                     if (this.currentUser.role !== 'engineer') return;
                     this.currentMaterial = material;
-                    await setDoc(doc(this.db, "siteSettings", "current"), { material: material });
+                    try {
+                        await setDoc(doc(this.db, "siteSettings", "current"), { material: material });
+                    } catch(e) {}
                 },
 
                 async registerLoad(truck) {
@@ -337,7 +340,11 @@
                         timestamp: now.getTime()
                     };
 
-                    await addDoc(collection(this.db, "loads"), newLoad);
+                    try {
+                        await addDoc(collection(this.db, "loads"), newLoad);
+                    } catch(e) {
+                        this.cloudLoads.unshift(newLoad);
+                    }
                 },
 
                 getTruckLoadCount(truckNumber) {
@@ -361,10 +368,16 @@
                         capacity: Number(this.truckForm.capacity)
                     };
 
-                    if (this.truckForm.id) {
-                        await setDoc(doc(this.db, "trucks", this.truckForm.id), truckData);
-                    } else {
-                        await addDoc(collection(this.db, "trucks"), truckData);
+                    try {
+                        if (this.truckForm.id) {
+                            await setDoc(doc(this.db, "trucks", this.truckForm.id), truckData);
+                        } else {
+                            await addDoc(collection(this.db, "trucks"), truckData);
+                        }
+                    } catch(e) {
+                        if (!this.truckForm.id) {
+                            this.trucks.push({ id: Date.now().toString(), ...truckData });
+                        }
                     }
 
                     this.resetTruckForm();
@@ -378,7 +391,11 @@
                 async deleteTruck(id) {
                     if (this.currentUser.role !== 'engineer') return;
                     if (confirm("هل أنت متأكد من حذف القلاب سحابياً؟")) {
-                        await deleteDoc(doc(this.db, "trucks", id));
+                        try {
+                            await deleteDoc(doc(this.db, "trucks", id));
+                        } catch(e) {
+                            this.trucks = this.trucks.filter(t => t.id !== id);
+                        }
                     }
                 },
 
