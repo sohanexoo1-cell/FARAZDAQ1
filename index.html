@@ -127,12 +127,10 @@
             <!-- أزرار الحمولات الميدانية السريعة بلمسة واحدة (أهم جزء للهواتف) -->
             <div class="space-y-3">
                 <h2 class="text-[11px] font-black text-slate-400 uppercase tracking-wider">🦺 تسجيل حمولة بضغطة واحدة (مؤمن ومزامن فوراً):</h2>
-                <!-- التخطيط في الهاتف يصبح كرت عريض مريح للإصبع، وفي الكمبيوتر كروت شبكية متراصة -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                     <template x-for="truck in trucks" :key="truck.id">
                         <div class="bg-slate-800 rounded-xl border border-slate-700/80 p-3.5 relative flex flex-row sm:flex-col justify-between items-center sm:items-start gap-4 sm:h-32 group">
                             
-                            <!-- محتوى الضغط والتسجيل الميداني المريح للمراقب -->
                             <button @click="registerLoad(truck)" class="text-right flex-1 w-full active:scale-[0.98] transition-transform">
                                 <div class="flex justify-between items-start sm:block">
                                     <div>
@@ -147,24 +145,19 @@
                                 </div>
                             </button>
 
-                            <!-- للموبايل: إظهار عداد الحمولات وزر الإضافة بشكل أفقي مريح -->
                             <div class="flex sm:hidden items-center gap-2">
-                                <span class="text-[11px] bg-slate-900 px-2.5 py-1.5 rounded-lg font-bold text-slate-300" x-text="getTruckLoadCount(truck.id) + ' م '"></span >
+                                <span class="text-[11px] bg-slate-900 px-2.5 py-1.5 rounded-lg font-bold text-slate-300" x-text="getTruckLoadCount(truck.id) + ' م '"></span>
                                 <button @click="registerLoad(truck)" class="w-10 h-10 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center shadow-lg active:bg-blue-700">➕</button>
                             </div>
 
-                            <!-- أدوات تعديل المهندس تظهر عند التمرير بالكمبيوتر أو واضحة بحجم أصغر -->
                             <div x-show="currentUser.role === 'engineer'" class="absolute left-2 top-2 hidden group-hover:flex gap-1 bg-slate-900 p-1 rounded-lg border border-slate-700">
                                 <button @click="editTruck(truck)" class="text-[9px] text-amber-400 px-1.5 py-0.5 rounded">تعديل</button>
                                 <button @click="deleteTruck(truck.id)" class="text-[9px] text-rose-400 px-1.5 py-0.5 rounded">حذف</button>
-        const firebaseConfig = {
-  apiKey: "AIzaSy...",
-  authDomain: "loadtrack-...",
-  projectId: "loadtrack-...",
-  storageBucket: "loadtrack-...",
-  messagingSenderId: "...",
-  appId: "..."
-};
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
 
             <!-- عرض السجلات وحالة المزامنة والتصدير -->
             <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
@@ -178,7 +171,6 @@
                     </button>
                 </div>
 
-                <!-- جدول ذكي (تصميم جدول كامل للكمبيوتر، وبطاقات صغيرة مرنة للموبايل) -->
                 <!-- 1. نسخة الكمبيوتر والتابلت (Desktop Table) -->
                 <div class="hidden md:block overflow-x-auto">
                     <table class="w-full text-right border-collapse">
@@ -256,14 +248,13 @@
 
                 // 📡 ربط التطبيق بقاعدة البيانات السحابية الحية لشركة جوجل
                 initFirebase() {
-                    // 👇 !!! استبدل هذا المتغير بالكامل ببيانات مشروعك الخاصة التي نسختها من موقع فايربيس !!!
                     const firebaseConfig = {
-                        apiKey: "AIzaSyYourActualConfigKeyGoesHere...",
-                        authDomain: "loadtrack-pro.firebaseapp.com",
-                        projectId: "loadtrack-pro",
-                        storageBucket: "loadtrack-pro.appspot.com",
-                        messagingSenderId: "1234567890",
-                        appId: "1:12345:web:abcdef"
+                        apiKey: "AIzaSy...",
+                        authDomain: "loadtrack-...",
+                        projectId: "loadtrack-...",
+                        storageBucket: "loadtrack-...",
+                        messagingSenderId: "...",
+                        appId: "..."
                     };
 
                     const app = initializeApp(firebaseConfig);
@@ -277,7 +268,7 @@
                         });
                     });
 
-                    // مزامنة حية وحظية لحظة بلحظة لكافة الحمولات المسجلة بالموقع لأي جهاز
+                    // مزامنة حية وحظية لكافة الحمولات المسجلة بالموقع لأي جهاز
                     const loadsQuery = query(collection(this.db, "loads"), orderBy("timestamp", "desc"));
                     onSnapshot(loadsQuery, (snapshot) => {
                         this.cloudLoads = [];
@@ -343,10 +334,9 @@
                         time: timeStr,
                         date: dateStr,
                         recordedBy: this.currentUser.name,
-                        timestamp: now.getTime() // لترتيب السجلات زمنياً سحابياً
+                        timestamp: now.getTime()
                     };
 
-                    // رفع السجل فوراً إلى السحابة
                     await addDoc(collection(this.db, "loads"), newLoad);
                 },
 
