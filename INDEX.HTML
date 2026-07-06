@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoadTrack - نظام إدارة الحمولات</title>
+    <!-- Tailwind CSS للتصميم -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js لإدارة العمليات -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- LocalForage لإدارة قاعدة بيانات IndexedDB الاحترافية -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased" 
+      x-data="loadTrackApp()" 
+      x-init="initApp()">
+
+    <!-- ================= 1. صفحة تسجيل الدخول ================= -->
+    <div x-show="!isLoggedIn" class="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full space-y-6 border border-gray-200">
+            <div class="text-center">
+                <span class="text-4xl">🚚</span>
+                <h2 class="text-2xl font-black text-gray-800 mt-2">تسجيل الدخول إلى LoadTrack</h2>
+                <p class="text-sm text-gray-400 mt-1">نظام إدارة حمولات القلابات الميداني</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-1">اختر الحساب الشخصي:</label>
+                    <select x-model="loginRole" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium">
+                        <option value="inspector">مراقب الموقع (تسجيل حمولات فقط)</option>
+                        <option value="engineer">المهندس المسؤول (صلاحيات كاملة)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-1">اسم المستخدم المستعار لـ (علي):</label>
+                    <input type="text" x-model="username" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-right" placeholder="اكتب اسمك هنا للتوثيق">
+                </div>
+                <button @click="login()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-xl transition-all shadow-md active:scale-95">
+                    دخول إلى النظام
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= النظام الرئيسي بعد تسجيل الدخول ================= -->
+    <div x-show="isLoggedIn" x-cloak>
+        
+        <!-- الشريط العلوي -->
+        <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl font-black tracking-wide text-blue-400">🚚 LoadTrack</span>
+                    <span class="text-xs bg-slate-800 px-2 py-1 rounded text-gray-300 border border-slate-700" 
+                          x-text="currentUser.role === 'engineer' ? 'الحساب: مهندس 🛠️' : 'الحساب: مراقب 📋'"></span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="text-sm font-medium text-slate-300 hidden sm:inline" x-text="'المستخدم: ' + currentUser.name"></span>
+                    <button @click="logout()" class="text-xs bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg font-bold transition-all">خروج</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+            <!-- لوحة الإحصائيات (العدادات المستقلة والإجمالية) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+                    <span class="text-gray-500 font-medium text-sm">إجمالي حمولات الموقع (اليوم)</span>
+                    <span class="text-4xl font-black text-blue-600 mt-2" x-text="localLoads.length">0</span>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+                    <span class="text-gray-500 font-medium text-sm">عدد القلابات النشطة</span>
+                    <span class="text-4xl font-black text-emerald-600 mt-2" x-text="trucks.filter(t => t.active).length">0</span>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+                    <span class="text-gray-500 font-medium text-sm">قاعدة البيانات المحلية</span>
+                    <span class="text-sm font-bold text-gray-400 mt-3 flex items-center gap-1 text-green-600">
+                        <span class="w-2 h-2 rounded-full bg-green-500 animate-ping"></span> IndexedDB نشطة وآمنة
+                    </span>
+                </div>
+            </div>
+
+            <!-- إدارة القلابات (خاصة بالمهندس فقط) -->
+            <div x-show="currentUser.role === 'engineer'" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">🛠️ لوحة إدارة القلابات (للمهندس فقط)</h2>
+                
+                <!-- نموذج إضافة / تعديل قلاب -->
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">رقم لوحة القلاب:</label>
+                        <input type="text" x-model="truckForm.number" class="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm" placeholder="مثال: أ-1029">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">اسم السائق الثابت:</label>
+                        <input type="text" x-model="truckForm.driver" class="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm" placeholder="مثال: محمد جاسم">
+                    </div>
+                    <div class="flex gap-2">
+                        <button @click="saveTruck()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-lg text-sm transition-all" x-text="truckForm.id ? 'تحديث البيانات' : 'إضافة قلاب جديد'"></button>
+                        <button x-show="truckForm.id" @click="resetTruckForm()" class="bg-gray-400 hover:bg-gray-500 text-white font-bold p-2.5 rounded-lg text-sm transition-all">إلغاء</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- قسم بطاقات القلابات (تسجيل الحمولة بضغطة واحدة + عداد مستقل) -->
+            <div>
+                <h2 class="text-md font-bold text-gray-700 mb-3 flex items-center gap-2">
+                    <span>📋 قائمة بطاقات القلابات الميدانية</span>
+                    <span class="text-xs font-normal text-gray-400">(اضغط على كارت القلاب لتسجيل حمولته فوراً)</span>
+                </h2>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    <template x-for="truck in trucks" :key="truck.id">
+                        <div class="bg-white rounded-xl shadow-sm border-2 border-gray-100 hover:border-blue-500 transition-all flex flex-col justify-between h-36 relative overflow-hidden group">
+                            <!-- زر التسجيل بضغطة واحدة -->
+                            <button @click="registerLoad(truck)" class="p-4 text-right flex-1 flex flex-col justify-between w-full h-full active:scale-95 transition-transform">
+                                <div>
+                                    <span class="block text-xs text-blue-600 font-bold" x-text="'لوحة: ' + truck.number"></span>
+                                    <span class="block text-base font-black text-gray-800 mt-1" x-text="truck.driver"></span>
+                                </div>
+                                <!-- العداد المستقل لكل قلاب -->
+                                <div class="flex justify-between items-center w-full mt-2 border-t border-gray-50 pt-2">
+                                    <div class="text-right">
+                                        <span class="text-[10px] text-gray-400 block font-medium">عداد القلاب الخاص:</span>
+                                        <span class="text-sm font-black text-slate-700" x-text="getTruckLoadCount(truck.id) + ' حمولة'"></span>
+                                    </div>
+                                    <span class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold group-hover:bg-blue-600 group-hover:text-white transition-colors">➕</span>
+                                </div>
+                            </button>
+
+                            <!-- أزرار التعديل والحذف (تظهر فقط للمهندس) -->
+                            <div x-show="currentUser.role === 'engineer'" class="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white p-1 rounded-md shadow-sm">
+                                <button @click="editTruck(truck)" class="text-xs bg-amber-100 hover:bg-amber-200 text-amber-700 px-1.5 py-0.5 rounded font-bold">تعديل</button>
+                                <button @click="deleteTruck(truck.id)" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-1.5 py-0.5 rounded font-bold">حذف</button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- سجل الحمولات مع التوثيق التلقائي للوقت والتاريخ والمستخدم -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                    <h2 class="font-bold text-gray-700">🕒 سجل الحمولات المحفوظ تلقائياً في قاعدة البيانات</h2>
+                    <button x-show="currentUser.role === 'engineer'" @click="clearDatabase()" class="text-xs bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1 rounded-lg font-bold transition-colors">تصفير قاعدة البيانات ⚠️</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 text-xs font-bold uppercase tracking-wider">
+                                <th class="p-3">رقم النقلة للقلاب</th>
+                                <th class="p-3">تفاصيل السائق واللوحة</th>
+                                <th class="p-3">الوقت والتاريخ التلقائي</th>
+                                <th class="p-3">المستخدم المسؤول</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm divide-y divide-gray-100 font-medium">
+                            <template x-for="(load, index) in localLoads" :key="index">
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="p-3 font-bold text-blue-600" x-text="'الحمولة رقم #' + load.loadNumber"></td>
+                                    <td class="p-3">
+                                        <div class="font-bold text-gray-800" x-text="load.driverName"></div>
+                                        <div class="text-xs text-gray-400" x-text="'رقم القلاب: ' + load.truckNumber"></div>
+                                    </td>
+                                    <td class="p-3 text-gray-600 font-mono" x-text="load.time + ' | ' + load.date"></td>
+                                    <td class="p-3">
+                                        <span class="bg-slate-100 text-slate-700 px-2 py-1 rounded text-xs font-bold" x-text="load.recordedBy"></span>
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr x-show="localLoads.length === 0">
+                                <td colspan="4" class="p-8 text-center text-gray-400 font-normal">لا توجد حمولات مسجلة في قاعدة البيانات حتى الآن.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ================= منطق جافا سكريبت الذكي والربط بـ IndexedDB ================= -->
+    <script>
+        function loadTrackApp() {
+            return {
+                // نظام الصلاحيات والمستخدمين
+                isLoggedIn: false,
+                loginRole: 'inspector',
+                username: '',
+                currentUser: { name: '', role: '' },
+
+                // الجداول وقاعدة البيانات
+                trucks: [],
+                localLoads: [],
+
+                // نموذج إدارة القلابات
+                truckForm: { id: null, number: '', driver: '', active: true },
+
+                async initApp() {
+                    // تهيئة مخازن قاعدة بيانات IndexedDB الاحترافية باستخدام localForage
+                    window.trucksDB = localforage.createInstance({ name: "LoadTrack_Trucks" });
+                    window.loadsDB = localforage.createInstance({ name: "LoadTrack_Loads" });
+
+                    // تحميل بيانات القلابات من قاعدة البيانات، إذا كانت فارغة نضع قلابات افتراضية
+                    const storedTrucks = await window.trucksDB.getItem('trucks_list');
+                    if (storedTrucks && storedTrucks.length > 0) {
+                        this.trucks = storedTrucks;
+                    } else {
+                        this.trucks = [
+                            { id: 1, number: "أ-1029", driver: "محمد جاسم", active: true },
+                            { id: 2, number: "ب-5543", driver: "علاء حسين", active: true }
+                        ];
+                        await window.trucksDB.setItem('trucks_list', this.trucks);
+                    }
+
+                    // تحميل سجل الحمولات بالكامل من قاعدة البيانات الميموري
+                    const storedLoads = await window.loadsDB.getItem('loads_history');
+                    if (storedLoads) {
+                        this.localLoads = storedLoads;
+                    }
+                },
+
+                // تسجيل الدخول وحفظ الجلسة
+                login() {
+                    if (!this.username.trim()) {
+                        alert("الرجاء كتابة اسم المستخدم المستعار لتوثيق السجلات برقمك واسمك.");
+                        return;
+                    }
+                    this.currentUser = {
+                        name: this.username,
+                        role: this.loginRole
+                    };
+                    this.isLoggedIn = true;
+                },
+
+                logout() {
+                    this.isLoggedIn = false;
+                    this.username = '';
+                },
+
+                // تسجيل حمولة بضغطة واحدة مع حفظ الوقت والتاريخ والمستخدم تلقائياً
+                async registerLoad(truck) {
+                    const now = new Date();
+                    const timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    const dateStr = now.toLocaleDateString('ar-EG');
+                    
+                    // حساب العداد المستقل لهذا القلاب تلقائياً
+                    const currentTruckLoads = this.localLoads.filter(l => l.truckId === truck.id).length;
+                    const nextLoadNumber = currentTruckLoads + 1;
+
+                    const newLoad = {
+                        truckId: truck.id,
+                        truckNumber: truck.number,
+                        driverName: truck.driver,
+                        loadNumber: nextLoadNumber,
+                        time: timeStr,
+                        date: dateStr,
+                        recordedBy: this.currentUser.name + ` (${this.currentUser.role === 'engineer' ? 'مهندس' : 'مراقب'})`
+                    };
+
+                    // الحفظ الفوري في المصفوفة ثم التحديث المباشر في قاعدة بيانات IndexedDB
+                    this.localLoads.unshift(newLoad);
+                    await window.loadsDB.setItem('loads_history', this.localLoads);
+                },
+
+                // حساب العداد المستقل لكل قلاب
+                getTruckLoadCount(truckId) {
+                    return this.localLoads.filter(l => l.truckId === truckId).length;
+                },
+
+                // إضافة وتعديل القلابات (مهندس فقط)
+                async saveTruck() {
+                    if (!this.truckForm.number.trim() || !this.truckForm.driver.trim()) {
+                        alert("يرجى ملء حقول رقم اللوحة واسم السائق.");
+                        return;
+                    }
+
+                    if (this.truckForm.id) {
+                        // وضع التعديل (Edit)
+                        const index = this.trucks.findIndex(t => t.id === this.truckForm.id);
+                        if (index !== -1) {
+                            this.trucks[index].number = this.truckForm.number;
+                            this.trucks[index].driver = this.truckForm.driver;
+                        }
+                    } else {
+                        // وضع الإضافة الجديد (Add)
+                        const newTruck = {
+                            id: Date.now(), // رقم معرف فريد تلقائي
+                            number: this.truckForm.number,
+                            driver: this.truckForm.driver,
+                            active: true
+                        };
+                        this.trucks.push(newTruck);
+                    }
+
+                    // حفظ التغييرات في قاعدة بيانات القلابات IndexedDB
+                    await window.trucksDB.setItem('trucks_list', this.trucks);
+                    this.resetTruckForm();
+                },
+
+                editTruck(truck) {
+                    this.truckForm = { ...truck };
+                },
+
+                // حذف القلاب (مهندس فقط)
+                async deleteTruck(id) {
+                    if (confirm("هل أنت متأكد من حذف هذا القلاب نهائياً من النظام؟")) {
+                        this.trucks = this.trucks.filter(t => t.id !== id);
+                        await window.trucksDB.setItem('trucks_list', this.trucks);
+                        
+                        // مسح حمولات هذا القلاب أيضاً إذا رغبت في المحافظة على سلامة الأرقام
+                        this.localLoads = this.localLoads.filter(l => l.truckId !== id);
+                        await window.loadsDB.setItem('loads_history', this.localLoads);
+                    }
+                },
+
+                resetTruckForm() {
+                    this.truckForm = { id: null, number: '', driver: '', active: true };
+                },
+
+                // تصفير وتنظيف قاعدة البيانات (مهندس فقط)
+                async clearDatabase() {
+                    if (confirm("تحذير! سيتم تصفير وحذف جميع الحمولات المسجلة نهائياً من قاعدة بيانات الجهاز، هل أنت متأكد؟")) {
+                        await window.loadsDB.removeItem('loads_history');
+                        this.localLoads = [];
+                        alert("تم تصفير السجلات بنجاح.");
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
