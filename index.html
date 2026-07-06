@@ -3,273 +3,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoadTrack Pro - الإصدار الاحترافي المطور</title>
-    <!-- Tailwind CSS للتصميم -->
+    <title>LoadTrack Pro - النظام السحابي المتجاوب</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js لإدارة العمليات -->
+    <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- SheetJS لتصدير التقارير إلى Excel -->
+    <!-- SheetJS Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- خط تجاري أنيق من جوجل -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- خط القاهرة -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Cairo', sans-serif; }
         [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col" 
-      x-data="loadTrackApp()" 
-      x-init="initApp()">
+<body class="bg-slate-900 text-slate-100 antialiased min-h-screen flex flex-col" 
+      x-data="loadTrackCloudApp()" 
+      x-init="initFirebase()">
 
-    <!-- ================= 1. شاشة تسجيل الدخول المطورة ================= -->
-    <div x-show="!isLoggedIn" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 px-4">
-        <div class="bg-white/95 backdrop-blur-md p-8 rounded-3xl shadow-2xl max-w-md w-full space-y-6 border border-white/20 transition-all">
+    <!-- ================= 1. شاشة تسجيل الدخول الموحدة ================= -->
+    <div x-show="!isLoggedIn" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4">
+        <div class="bg-slate-800/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-2xl max-w-md w-full space-y-6 border border-slate-700 transition-all">
             <div class="text-center space-y-2">
-                <div class="inline-flex p-4 bg-blue-50 text-blue-600 rounded-2xl text-3xl font-bold mb-2">🚚</div>
-                <h2 class="text-2xl font-black text-slate-900">بوابة نظام LoadTrack</h2>
-                <p class="text-xs text-slate-400 font-medium">نظام التوثيق الميداني وحفظ الحمولات المستقر</p>
+                <div class="inline-flex p-4 bg-blue-500/10 text-blue-400 rounded-2xl text-3xl font-bold mb-2">☁️</div>
+                <h2 class="text-2xl font-black text-white">بوابة LoadTrack السحابية</h2>
+                <p class="text-xs text-slate-400 font-medium">مزامنة فورية للموقع بين الهاتف والكمبيوتر</p>
             </div>
             
             <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">أدخل الرمز السري (PIN):</label>
-                    <input type="password" x-model="pinCode" maxlength="5" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 font-mono text-center text-2xl tracking-widest text-slate-800 transition-all" placeholder="•••••">
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">أدخل الرمز السري (PIN):</label>
+                    <input type="password" x-model="pinCode" maxlength="5" class="w-full p-3.5 bg-slate-900 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-center text-2xl tracking-widest text-white transition-all" placeholder="•••••">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">اسم المستخدم للتوثيق:</label>
-                    <input type="text" x-model="username" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 font-bold text-center text-slate-800 transition-all" placeholder="اكتب اسمك الثلاثي">
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">اسم المستخدم للتوثيق الميداني:</label>
+                    <input type="text" x-model="username" class="w-full p-3.5 bg-slate-900 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-center text-white transition-all" placeholder="اكتب الاسم الثلاثي">
                 </div>
                 <button @click="verifyAndLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black p-3.5 rounded-xl transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98] text-sm">
-                    التحقق والدخول للنظام 🔓
+                    تسجيل الدخول ومزامنة الأجهزة 📡
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- ================= 2. واجهة النظام الرئيسي الاحترافي ================= -->
+    <!-- ================= 2. الواجهة الرئيسية الهجينة الذكية ================= -->
     <div x-show="isLoggedIn" x-cloak class="flex-1 flex flex-col">
         
-        <!-- شريط القيادة العلوي المحمي -->
-        <header class="bg-slate-900 text-white shadow-xl sticky top-0 z-50 border-b border-slate-800">
-            <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <span class="text-xl font-black tracking-tight text-blue-400">🚚 LoadTrack <span class="text-white font-light text-sm bg-blue-600 px-1.5 py-0.5 rounded-md">Pro</span></span>
-                    <span class="text-xs px-2.5 py-1 rounded-xl font-bold tracking-wide border shadow-inner" 
+        <!-- الهيدر العلوي الموحد -->
+        <header class="bg-slate-950 text-white shadow-xl sticky top-0 z-50 border-b border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <span class="text-lg sm:text-xl font-black tracking-tight text-blue-400">🚚 LoadTrack <span class="text-white font-light text-xs bg-blue-600 px-1.5 py-0.5 rounded-md">Cloud</span></span>
+                    <span class="text-[10px] sm:text-xs px-2 py-0.5 sm:py-1 rounded-xl font-bold border" 
                           :class="currentUser.role === 'engineer' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-blue-500/10 text-blue-400 border-blue-500/30'"
-                          x-text="currentUser.role === 'engineer' ? 'حساب المهندس المسؤول 🛠️' : 'حساب مراقب الموقع 📋'"></span>
+                          x-text="currentUser.role === 'engineer' ? 'مهندس مسؤول 🛠️' : 'مراقب الموقع 📋'"></span>
                 </div>
-                <div class="flex items-center gap-4">
-                    <span class="text-xs font-bold text-slate-400 hidden sm:inline-block">المستخدم الحالي: <span class="text-white text-sm font-black" x-text="currentUser.name"></span></span>
-                    <button @click="logout()" class="text-xs bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-2 rounded-xl font-bold transition-all border border-rose-500/30">تسجيل الخروج</button>
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-400 hidden xs:inline-block">المستخدم: <span class="text-white text-xs sm:text-sm font-black" x-text="currentUser.name"></span></span>
+                    <button @click="logout()" class="text-[10px] sm:text-xs bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-2.5 py-1.5 rounded-xl font-bold transition-all border border-rose-500/30">خروج</button>
                 </div>
             </div>
         </header>
 
-        <main class="max-w-7xl mx-auto px-4 py-8 space-y-6 w-full flex-1">
+        <!-- المحتوى الرئيسي المتجاوب -->
+        <main class="max-w-7xl mx-auto px-3 sm:px-4 py-6 space-y-6 w-full flex-1">
 
-            <!-- إدارة مادة التحميل (متاحة للمهندس فقط) -->
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-5 rounded-2xl text-white shadow-lg flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border border-blue-500/20">
+            <!-- حالة المادة الحالية السحابية -->
+            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 p-4 sm:p-5 rounded-2xl text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-blue-600/30">
                 <div>
-                    <h3 class="text-sm font-bold text-blue-100 uppercase tracking-wider">📋 مادة التحميل النشطة حالياً بالموقع:</h3>
-                    <p class="text-2xl font-black text-white mt-1" x-text="currentMaterial"></p>
-                    <p class="text-[11px] text-blue-200 mt-1" x-show="currentUser.role === 'inspector'">⚠️ لا يمكن للمراقب تغيير المادة النشطة (خيار مخصص للمهندس فقط).</p>
+                    <h3 class="text-xs font-bold text-blue-200 uppercase tracking-wider">📋 مادة التحميل النشطة بالموقع (سحابي):</h3>
+                    <p class="text-xl sm:text-2xl font-black text-white mt-0.5" x-text="currentMaterial"></p>
                 </div>
-                <div class="flex flex-wrap gap-2 w-full lg:w-auto" x-show="currentUser.role === 'engineer'">
+                <!-- تحكم المهندس فقط بتغيير المواد لجميع الأجهزة تلقائياً -->
+                <div class="flex flex-wrap gap-1.5 w-full md:w-auto" x-show="currentUser.role === 'engineer'">
                     <template x-for="material in materials">
                         <button @click="changeMaterial(material)"
-                                class="flex-1 lg:flex-none px-4 py-2.5 rounded-xl text-xs font-black transition-all shadow-sm"
-                                :class="currentMaterial === material ? 'bg-white text-slate-900 scale-105 shadow-md' : 'bg-white/10 text-white hover:bg-white/20 border border-white/10'"
+                                class="flex-1 md:flex-none px-3 py-2 rounded-xl text-[11px] font-black transition-all"
+                                :class="currentMaterial === material ? 'bg-white text-slate-950 scale-105 shadow-md' : 'bg-white/10 text-white hover:bg-white/20 border border-white/10'"
                                 x-text="material"></button>
                     </template>
                 </div>
             </div>
 
-            <!-- لوحة الإحصائيات الفورية لجميع المستخدمين -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between group hover:shadow-md transition-shadow">
-                    <span class="text-slate-400 font-bold text-xs">إجمالي حمولات الموقع الموثقة</span>
-                    <span class="text-4xl font-black text-blue-600 mt-2" x-text="localLoads.length">0</span>
+            <!-- كروت الإحصائيات (تتحول من صف واحد بالكمبيوتر إلى كروت عمودية بالموبايل) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-700/60">
+                    <span class="text-slate-400 font-bold text-xs block">إجمالي النقلات السحابية</span>
+                    <span class="text-3xl font-black text-blue-400 mt-1 block" x-text="cloudLoads.length">0</span>
                 </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between group hover:shadow-md transition-shadow">
-                    <span class="text-slate-400 font-bold text-xs">إجمالي حجم المواد المنقولة</span>
-                    <span class="text-3xl font-black text-amber-500 mt-2" x-text="getTotalVolume() + ' م³'">0 م³</span>
+                <div class="bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-700/60">
+                    <span class="text-slate-400 font-bold text-xs block">إجمالي الحجم المنقول لمطابقة الحسابات</span>
+                    <span class="text-2xl font-black text-amber-400 mt-1 block" x-text="getTotalVolume() + ' م³'">0 م³</span>
                 </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between group hover:shadow-md transition-shadow">
-                    <span class="text-slate-400 font-bold text-xs">القلابات المسجلة بالخدمة</span>
-                    <span class="text-4xl font-black text-emerald-600 mt-2" x-text="trucks.length">0</span>
+                <div class="bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-700/60">
+                    <span class="text-slate-400 font-bold text-xs block">القلابات العاملة بالموقع</span>
+                    <span class="text-3xl font-black text-emerald-400 mt-1 block" x-text="trucks.length">0</span>
                 </div>
             </div>
 
-            <!-- أدوات التحكم الفنية وإضافة وتعديل القلابات (محمية ومحجوبة للمهندس فقط) -->
-            <div x-show="currentUser.role === 'engineer'" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-                <h2 class="text-sm font-black text-slate-800 flex items-center gap-2">🛠️ لوحة التحكم وإضافة القلابات (خاص بالمهندس)</h2>
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+            <!-- إضافة وتعديل القلابات (عرض مضغوط في الهاتف) -->
+            <div x-show="currentUser.role === 'engineer'" class="bg-slate-800 p-4 sm:p-6 rounded-2xl border border-slate-700 space-y-4">
+                <h2 class="text-xs sm:text-sm font-black text-slate-200">🛠️ إدارة اسطول القلابات (خاص بالمهندس)</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">رقم لوحة القلاب:</label>
-                        <input type="text" x-model="truckForm.number" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-600 focus:outline-none" placeholder="أ-1029">
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">رقم لوحة القلاب:</label>
+                        <input type="text" x-model="truckForm.number" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">اسم السائق الثابت:</label>
-                        <input type="text" x-model="truckForm.driver" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-600 focus:outline-none" placeholder="محمد جاسم">
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">اسم السائق:</label>
+                        <input type="text" x-model="truckForm.driver" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">السعة الفنية الاستيعابية (م³):</label>
-                        <input type="number" x-model.number="truckForm.capacity" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-600 focus:outline-none" placeholder="12">
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">السعة (م³):</label>
+                        <input type="number" x-model.number="truckForm.capacity" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     <div class="flex gap-2">
-                        <button @click="saveTruck()" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-black p-2.5 rounded-lg text-sm transition-all" x-text="truckForm.id ? 'تحديث البيانات' : 'إضافة قلاب للعمل'"></button>
-                        <button x-show="truckForm.id" @click="resetTruckForm()" class="bg-slate-300 hover:bg-slate-400 text-slate-700 font-bold p-2.5 rounded-lg text-sm transition-all">إلغاء</button>
+                        <button @click="saveTruck()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black p-2.5 rounded-xl text-xs transition-all" x-text="truckForm.id ? 'تحديث' : 'إضافة قلاب سحابي'"></button>
+                        <button x-show="truckForm.id" @click="resetTruckForm()" class="bg-slate-700 text-slate-300 p-2.5 rounded-xl text-xs">إلغاء</button>
                     </div>
                 </div>
             </div>
 
-            <!-- قسم بطاقات القلابات المفتوحة للمراقب والمهندس (تسجيل الحمولة بضغطة واحدة) -->
+            <!-- أزرار الحمولات الميدانية السريعة بلمسة واحدة (أهم جزء للهواتف) -->
             <div class="space-y-3">
-                <h2 class="text-xs font-black text-slate-400 uppercase tracking-wider">🦺 اضغط على بطاقة القلاب لتسجيل نقلة فوراً:</h2>
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <h2 class="text-[11px] font-black text-slate-400 uppercase tracking-wider">🦺 تسجيل حمولة بضغطة واحدة (مؤمن ومزامن فوراً):</h2>
+                <!-- التخطيط في الهاتف يصبح كرت عريض مريح للإصبع، وفي الكمبيوتر كروت شبكية متراصة -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                     <template x-for="truck in trucks" :key="truck.id">
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 hover:border-blue-500 hover:shadow-md transition-all flex flex-col justify-between h-36 relative overflow-hidden group">
-                            <!-- زر التسجيل بضغطة واحدة -->
-                            <button @click="registerLoad(truck)" class="p-4 text-right flex-1 flex flex-col justify-between w-full h-full active:scale-[0.97] transition-transform">
-                                <div>
-                                    <span class="inline-block text-[10px] font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md" x-text="'لوحة: ' + truck.number"></span>
-                                    <span class="block text-base font-black text-slate-800 mt-2 truncate" x-text="truck.driver"></span>
-                                    <span class="block text-[10px] text-slate-400 font-medium mt-0.5" x-text="'السعة: ' + truck.capacity + ' م³'"></span>
-                                </div>
-                                <div class="flex justify-between items-center w-full mt-2 border-t border-slate-50 pt-2">
+                        <div class="bg-slate-800 rounded-xl border border-slate-700/80 p-3.5 relative flex flex-row sm:flex-col justify-between items-center sm:items-start gap-4 sm:h-32 group">
+                            
+                            <!-- محتوى الضغط والتسجيل الميداني المريح للمراقب -->
+                            <button @click="registerLoad(truck)" class="text-right flex-1 w-full active:scale-[0.98] transition-transform">
+                                <div class="flex justify-between items-start sm:block">
                                     <div>
-                                        <span class="text-xs font-black text-slate-700 bg-slate-50 px-2 py-1 rounded-md border border-slate-100" x-text="getTruckLoadCount(truck.id) + ' نقلة'"></span>
+                                        <span class="inline-block text-[9px] font-bold bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded" x-text="'لوحة: ' + truck.number"></span>
+                                        <h4 class="text-sm font-black text-white mt-1 truncate" x-text="truck.driver"></h4>
                                     </div>
-                                    <span class="w-7 h-7 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 text-xs font-bold group-hover:bg-blue-600 group-hover:text-white transition-colors shadow-inner">➕</span>
+                                    <span class="text-[10px] text-amber-400 font-bold sm:block mt-0.5" x-text="'سعة: ' + truck.capacity + ' م³'"></span>
+                                </div>
+                                <div class="mt-2 pt-2 border-t border-slate-700/50 hidden sm:flex justify-between items-center">
+                                    <span class="text-[10px] bg-slate-900 px-2 py-1 rounded font-bold text-slate-300" x-text="getTruckLoadCount(truck.id) + ' نقلة'"></span>
+                                    <span class="text-xs bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center font-bold">+</span>
                                 </div>
                             </button>
 
-                            <!-- أدوات التعديل والحذف (محمية برمجياً وتظهر فقط للمهندس 00000) -->
-                            <div x-show="currentUser.role === 'engineer'" class="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/95 p-1 rounded-xl shadow-md border border-slate-100">
-                                <button @click="editTruck(truck)" class="text-[10px] bg-amber-50 hover:bg-amber-100 text-amber-700 px-2 py-1 rounded-md font-bold">تعديل</button>
-                                <button @click="deleteTruck(truck.id)" class="text-[10px] bg-rose-50 hover:bg-rose-100 text-rose-600 px-2 py-1 rounded-md font-bold">حذف</button>
+                            <!-- للموبايل: إظهار عداد الحمولات وزر الإضافة بشكل أفقي مريح -->
+                            <div class="flex sm:hidden items-center gap-2">
+                                <span class="text-[11px] bg-slate-900 px-2.5 py-1.5 rounded-lg font-bold text-slate-300" x-text="getTruckLoadCount(truck.id) + ' م '"></span >
+                                <button @click="registerLoad(truck)" class="w-10 h-10 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center shadow-lg active:bg-blue-700">➕</button>
                             </div>
-                        </div>
-                    </template>
-                </div>
-            </div>
 
-            <!-- التقارير والتصدير -->
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden">
-                <div class="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 bg-slate-50/50">
+                            <!-- أدوات تعديل المهندس تظهر عند التمرير بالكمبيوتر أو واضحة بحجم أصغر -->
+                            <div x-show="currentUser.role === 'engineer'" class="absolute left-2 top-2 hidden group-hover:flex gap-1 bg-slate-900 p-1 rounded-lg border border-slate-700">
+                                <button @click="editTruck(truck)" class="text-[9px] text-amber-400 px-1.5 py-0.5 rounded">تعديل</button>
+                                <button @click="deleteTruck(truck.id)" class="text-[9px] text-rose-400 px-1.5 py-0.5 rounded">حذف</button>
+        const firebaseConfig = {
+  apiKey: "AIzaSy...",
+  authDomain: "loadtrack-...",
+  projectId: "loadtrack-...",
+  storageBucket: "loadtrack-...",
+  messagingSenderId: "...",
+  appId: "..."
+};
+
+            <!-- عرض السجلات وحالة المزامنة والتصدير -->
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
+                <div class="p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/40 border-b border-slate-700">
                     <div>
-                        <h2 class="font-black text-slate-800 text-base">📊 سجل حركة النقل العام ومطابقة البيانات</h2>
-                        <p class="text-xs text-slate-400 font-medium mt-0.5">البيانات محفوظة بشكل دائم على ذاكرة هذا الجهاز ولا يمكن حذفها إلا من قبل المهندس.</p>
+                        <h2 class="font-black text-white text-sm sm:text-base">📊 سجل حركة النقل العام الفورية والمزامنة</h2>
+                        <p class="text-[11px] text-slate-400 mt-0.5">يتم تحديث هذا الجدول تلقائياً وبدون تحديث الصفحة عند قيام أي جهاز آخر بالتسجيل.</p>
                     </div>
-                    <!-- زر تصدير إكسل متاح حصرياً للمهندس فقط لمنع تسريب التقارير -->
-                    <button x-show="currentUser.role === 'engineer'" @click="exportToExcel()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black px-5 py-3 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all active:scale-95">
-                        <span>📥 تصدير كشف حساب احترافي (Excel)</span>
+                    <button x-show="currentUser.role === 'engineer'" @click="exportToExcel()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg transition-all">
+                        <span>📥 تصدير كشف حساب ممتاز (Excel)</span>
                     </button>
                 </div>
 
-                <!-- خيارات الفلترة السريعة للجداول -->
-                <div class="p-4 border-b border-slate-100 flex flex-wrap gap-2 text-xs font-bold bg-white">
-                    <button @click="filterType = 'all'" :class="filterType === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" class="px-4 py-2 rounded-xl transition-all">كل المواد المسجلة</button>
-                    <template x-for="material in materials">
-                        <button @click="filterType = material" :class="filterType === material ? 'bg-purple-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" class="px-4 py-2 rounded-xl transition-all" x-text="material"></button>
-                    </template>
-                </div>
-
-                <!-- جدول عرض السجلات الميدانية الفورية -->
-                <div class="overflow-x-auto">
+                <!-- جدول ذكي (تصميم جدول كامل للكمبيوتر، وبطاقات صغيرة مرنة للموبايل) -->
+                <!-- 1. نسخة الكمبيوتر والتابلت (Desktop Table) -->
+                <div class="hidden md:block overflow-x-auto">
                     <table class="w-full text-right border-collapse">
                         <thead>
-                            <tr class="bg-slate-50/70 text-slate-500 text-xs font-black uppercase border-b border-slate-200/60">
-                                <th class="p-4">رقم النقلة</th>
-                                <th class="p-4">رقم اللوحة الفني</th>
+                            <tr class="bg-slate-900/50 text-slate-400 text-xs font-black border-b border-slate-700">
+                                <th class="p-4">رقم النقلة للقلاب</th>
+                                <th class="p-4">رقم اللوحة</th>
                                 <th class="p-4">اسم السائق</th>
                                 <th class="p-4">نوع المادة</th>
                                 <th class="p-4">الحجم الصافي</th>
-                                <th class="p-4">توقيت الحركة</th>
-                                <th class="p-4">المسؤول عن التسجيل</th>
+                                <th class="p-4">توقيت النقلة الميداني</th>
+                                <th class="p-4">المسؤول عن التوثيق</th>
                             </tr>
                         </thead>
-                        <tbody class="text-xs divide-y divide-slate-100 font-bold text-slate-700">
-                            <template x-for="(load, index) in filteredLoads()" :key="index">
-                                <tr class="hover:bg-slate-50/50 transition-colors">
-                                    <td class="p-4 font-black text-blue-600" x-text="'#' + load.loadNumber"></td>
-                                    <td class="p-4 text-slate-600 font-mono" x-text="load.truckNumber"></td>
-                                    <td class="p-4 font-black text-slate-900" x-text="load.driverName"></td>
-                                    <td class="p-4">
-                                        <span class="bg-purple-50 text-purple-700 px-2.5 py-1 rounded-lg text-[10px] font-black border border-purple-100" x-text="load.material"></span>
-                                    </td>
-                                    <td class="p-4 text-amber-600 font-black" x-text="load.capacity + ' م³'"></td>
-                                    <td class="p-4 text-slate-400 font-mono text-[11px]" x-text="load.time + ' | ' + load.date"></td>
-                                    <td class="p-4">
-                                        <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded-md font-bold" x-text="load.recordedBy"></span>
-                                    </td>
+                        <tbody class="text-xs divide-y divide-slate-700/50 text-slate-300 font-bold">
+                            <template x-for="(load, index) in cloudLoads" :key="index">
+                                <tr class="hover:bg-slate-900/20 transition-colors">
+                                    <td class="p-4 text-blue-400" x-text="'#' + load.loadNumber"></td>
+                                    <td class="p-4 font-mono text-slate-400" x-text="load.truckNumber"></td>
+                                    <td class="p-4 text-white" x-text="load.driverName"></td>
+                                    <td class="p-4"><span class="bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded border border-purple-500/20" x-text="load.material"></span></td>
+                                    <td class="p-4 text-amber-400" x-text="load.capacity + ' م³'"></td>
+                                    <td class="p-4 text-slate-400 font-mono text-[11px]" x-text="load.time + ' - ' + load.date"></td>
+                                    <td class="p-4 text-slate-400" x-text="load.recordedBy"></td>
                                 </tr>
                             </template>
-                            <tr x-show="filteredLoads().length === 0">
-                                <td colspan="7" class="p-12 text-center text-slate-400 font-normal text-sm">لا توجد سجلات مطابقة للخيارات المحددة حالياً.</td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <!-- لوحة التصفير الهندسية المحمية للبيانات -->
-                <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center text-xs font-bold" x-show="currentUser.role === 'engineer'">
-                    <span class="text-slate-400">منطقة الإدارة الحساسة</span>
-                    <button @click="clearDatabase()" class="text-rose-600 hover:text-rose-700 transition-all hover:underline">تصفير ومسح قاعدة البيانات بشكل نهائي ⚠️</button>
+                <!-- 2. نسخة الهاتف المحمول التلقائية والذكية (Mobile View Cards) -->
+                <div class="block md:hidden divide-y divide-slate-700/60 bg-slate-900/30">
+                    <template x-for="(load, index) in cloudLoads" :key="index">
+                        <div class="p-4 space-y-2 text-xs font-bold">
+                            <div class="flex justify-between items-center">
+                                <span class="text-blue-400 font-black text-sm" x-text="'نقلة #' + load.loadNumber"></span>
+                                <span class="text-slate-400 text-[10px] font-mono" x-text="load.time"></span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-y-1 text-slate-300">
+                                <div><span class="text-slate-500">السائق:</span> <span class="text-white" x-text="load.driverName"></span></div>
+                                <div><span class="text-slate-500">اللوحة:</span> <span class="font-mono text-slate-400" x-text="load.truckNumber"></span></div>
+                                <div><span class="text-slate-500">المادة:</span> <span class="text-purple-400" x-text="load.material"></span></div>
+                                <div><span class="text-slate-500">الحجم:</span> <span class="text-amber-400" x-text="load.capacity + ' م³'"></span></div>
+                            </div>
+                            <div class="text-[10px] text-slate-500 pt-1 border-t border-slate-800/50 flex justify-between">
+                                <span x-text="'الموثق: ' + load.recordedBy"></span>
+                                <span x-text="load.date"></span>
+                            </div>
+                        </div>
+                    </template>
                 </div>
+
+                <div x-show="cloudLoads.length === 0" class="p-12 text-center text-slate-500 text-sm font-normal">لا توجد سجلات سحابية مسجلة حالياً بالموقع.</div>
             </div>
         </main>
     </div>
 
-    <!-- ================= 3. منطق الجافا سكريبت للتخزين الدائم والتصدير المنظم ================= -->
-    <script>
-        function loadTrackApp() {
+    <!-- تفعيل مكتبات خدمات الفايربيس السحابية الرسمية بجافا سكريبت -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        window.loadTrackCloudApp = function() {
             return {
                 pinCode: '',
                 username: '',
                 isLoggedIn: false,
                 currentUser: { name: '', role: '' },
-
                 materials: ['سبيس', 'حصى خابط', 'دفان ترابي', 'مزيج كونكريت'],
                 currentMaterial: 'سبيس',
-                filterType: 'all',
-
                 trucks: [],
-                localLoads: [],
+                cloudLoads: [],
                 truckForm: { id: null, number: '', driver: '', capacity: 12 },
+                db: null,
 
-                // استدعاء البيانات من الذاكرة المستقرة
-                initApp() {
-                    const storedTrucks = localStorage.getItem('LT_trucks_list_v2');
-                    if (storedTrucks) {
-                        this.trucks = JSON.parse(storedTrucks);
-                    } else {
-                        this.trucks = [
-                            { id: 1, number: "أ-1029", driver: "محمد جاسم", capacity: 12 },
-                            { id: 2, number: "ب-5543", driver: "علاء حسين", capacity: 18 }
-                        ];
-                        localStorage.setItem('LT_trucks_list_v2', JSON.stringify(this.trucks));
-                    }
+                // 📡 ربط التطبيق بقاعدة البيانات السحابية الحية لشركة جوجل
+                initFirebase() {
+                    // 👇 !!! استبدل هذا المتغير بالكامل ببيانات مشروعك الخاصة التي نسختها من موقع فايربيس !!!
+                    const firebaseConfig = {
+                        apiKey: "AIzaSyYourActualConfigKeyGoesHere...",
+                        authDomain: "loadtrack-pro.firebaseapp.com",
+                        projectId: "loadtrack-pro",
+                        storageBucket: "loadtrack-pro.appspot.com",
+                        messagingSenderId: "1234567890",
+                        appId: "1:12345:web:abcdef"
+                    };
 
-                    const storedLoads = localStorage.getItem('LT_loads_history_v2');
-                    if (storedLoads) {
-                        this.localLoads = JSON.parse(storedLoads);
-                    }
+                    const app = initializeApp(firebaseConfig);
+                    this.db = getFirestore(app);
 
-                    const storedMaterial = localStorage.getItem('LT_current_material_v2');
-                    if (storedMaterial) {
-                        this.currentMaterial = storedMaterial;
-                    }
+                    // مزامنة حية لجدول القلابات بين كافة الأجهزة المتصلة
+                    onSnapshot(collection(this.db, "trucks"), (snapshot) => {
+                        this.trucks = [];
+                        snapshot.forEach((doc) => {
+                            this.trucks.push({ id: doc.id, ...doc.data() });
+                        });
+                    });
+
+                    // مزامنة حية وحظية لحظة بلحظة لكافة الحمولات المسجلة بالموقع لأي جهاز
+                    const loadsQuery = query(collection(this.db, "loads"), orderBy("timestamp", "desc"));
+                    onSnapshot(loadsQuery, (snapshot) => {
+                        this.cloudLoads = [];
+                        snapshot.forEach((doc) => {
+                            this.cloudLoads.push(doc.data());
+                        });
+                    });
+
+                    // مزامنة حالة المادة النشطة بالموقع بين المهندس والمراقبين
+                    onSnapshot(collection(this.db, "siteSettings"), (snapshot) => {
+                        snapshot.forEach((doc) => {
+                            if (doc.id === "current") {
+                                this.currentMaterial = doc.data().material;
+                            }
+                        });
+                    });
                 },
 
                 verifyAndLogin() {
                     if (!this.username.trim()) {
-                        alert("يرجى كتابة اسمك الثلاثي للتوثيق الهندسي لعمليات التسجيل.");
+                        alert("يرجى إدخال اسمك الثلاثي للتوثيق.");
                         return;
                     }
-
                     if (this.pinCode === '00000') {
                         this.currentUser = { name: this.username, role: 'engineer' };
                         this.isLoggedIn = true;
@@ -277,7 +308,7 @@
                         this.currentUser = { name: this.username, role: 'inspector' };
                         this.isLoggedIn = true;
                     } else {
-                        alert("الرمز السري (PIN) مدخل بشكل خاطئ! تحقق من الرمز وحاول مجدداً.");
+                        alert("الرمز السري خاطئ.");
                         this.pinCode = '';
                     }
                 },
@@ -289,22 +320,21 @@
                     this.currentUser = { name: '', role: '' };
                 },
 
-                changeMaterial(material) {
+                async changeMaterial(material) {
                     if (this.currentUser.role !== 'engineer') return;
                     this.currentMaterial = material;
-                    localStorage.setItem('LT_current_material_v2', material);
+                    await setDoc(doc(this.db, "siteSettings", "current"), { material: material });
                 },
 
-                registerLoad(truck) {
+                async registerLoad(truck) {
                     const now = new Date();
                     const timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                     const dateStr = now.toLocaleDateString('ar-EG');
                     
-                    const currentTruckLoads = this.localLoads.filter(l => l.truckId === truck.id).length;
+                    const currentTruckLoads = this.cloudLoads.filter(l => l.truckNumber === truck.number).length;
                     const nextLoadNumber = currentTruckLoads + 1;
 
                     const newLoad = {
-                        truckId: truck.id,
                         truckNumber: truck.number,
                         driverName: truck.driver,
                         capacity: truck.capacity,
@@ -312,51 +342,41 @@
                         material: this.currentMaterial,
                         time: timeStr,
                         date: dateStr,
-                        recordedBy: this.currentUser.name
+                        recordedBy: this.currentUser.name,
+                        timestamp: now.getTime() // لترتيب السجلات زمنياً سحابياً
                     };
 
-                    this.localLoads.unshift(newLoad);
-                    localStorage.setItem('LT_loads_history_v2', JSON.stringify(this.localLoads));
+                    // رفع السجل فوراً إلى السحابة
+                    await addDoc(collection(this.db, "loads"), newLoad);
                 },
 
-                getTruckLoadCount(truckId) {
-                    return this.localLoads.filter(l => l.truckId === truckId).length;
+                getTruckLoadCount(truckNumber) {
+                    return this.cloudLoads.filter(l => l.truckNumber === truckNumber).length;
                 },
 
                 getTotalVolume() {
-                    return this.localLoads.reduce((sum, load) => sum + load.capacity, 0);
+                    return this.cloudLoads.reduce((sum, load) => sum + load.capacity, 0);
                 },
 
-                filteredLoads() {
-                    if (this.filterType === 'all') return this.localLoads;
-                    return this.localLoads.filter(l => l.material === this.filterType);
-                },
-
-                saveTruck() {
+                async saveTruck() {
                     if (this.currentUser.role !== 'engineer') return;
                     if (!this.truckForm.number.trim() || !this.truckForm.driver.trim() || !this.truckForm.capacity) {
-                        alert("يرجى ملء كافة الخانات الهندسية المطلوبة.");
+                        alert("يرجى إكمال خانات القلاب الفنية.");
                         return;
                     }
 
+                    const truckData = {
+                        number: this.truckForm.number,
+                        driver: this.truckForm.driver,
+                        capacity: Number(this.truckForm.capacity)
+                    };
+
                     if (this.truckForm.id) {
-                        const index = this.trucks.findIndex(t => t.id === this.truckForm.id);
-                        if (index !== -1) {
-                            this.trucks[index].number = this.truckForm.number;
-                            this.trucks[index].driver = this.truckForm.driver;
-                            this.trucks[index].capacity = this.truckForm.capacity;
-                        }
+                        await setDoc(doc(this.db, "trucks", this.truckForm.id), truckData);
                     } else {
-                        const newTruck = {
-                            id: Date.now(),
-                            number: this.truckForm.number,
-                            driver: this.truckForm.driver,
-                            capacity: this.truckForm.capacity
-                        };
-                        this.trucks.push(newTruck);
+                        await addDoc(collection(this.db, "trucks"), truckData);
                     }
 
-                    localStorage.setItem('LT_trucks_list_v2', JSON.stringify(this.trucks));
                     this.resetTruckForm();
                 },
 
@@ -365,11 +385,10 @@
                     this.truckForm = { ...truck };
                 },
 
-                deleteTruck(id) {
+                async deleteTruck(id) {
                     if (this.currentUser.role !== 'engineer') return;
-                    if (confirm("هل أنت متأكد من مسح هذا القلاب نهائياً من النظام الميداني؟")) {
-                        this.trucks = this.trucks.filter(t => t.id !== id);
-                        localStorage.setItem('LT_trucks_list_v2', JSON.stringify(this.trucks));
+                    if (confirm("هل أنت متأكد من حذف القلاب سحابياً؟")) {
+                        await deleteDoc(doc(this.db, "trucks", id));
                     }
                 },
 
@@ -377,12 +396,10 @@
                     this.truckForm = { id: null, number: '', driver: '', capacity: 12 };
                 },
 
-                // ميزة تصدير كشف الحساب الاحترافي إلى Excel بتنسيق رسمي منظم جداً
                 exportToExcel() {
                     if (this.currentUser.role !== 'engineer') return;
                     
-                    // 1. بناء وهيكلة صفوف الجدول مع تنسيق أسماء الأعمدة بشكل احترافي
-                    const rows = this.filteredLoads().map(l => ({
+                    const rows = this.cloudLoads.map(l => ({
                         'رقم النقلة للقلاب': l.loadNumber,
                         'رقم اللوحة الفني': l.truckNumber,
                         'اسم السائق الثابت': l.driverName,
@@ -393,11 +410,9 @@
                         'المسؤول عن التوثيق': l.recordedBy
                     }));
 
-                    // 2. إنشاء ورقة العمل (Worksheet)
                     const worksheet = XLSX.utils.json_to_sheet(rows);
-
-                    // 3. إضافة صف الإجمالي التلقائي للحسابات المالية والميدانية في أسفل الملف
                     const totalVolume = this.getTotalVolume();
+                    
                     XLSX.utils.sheet_add_json(worksheet, [{
                         'رقم النقلة للقلاب': 'الإجمالي الكلي الحجمي:',
                         'رقم اللوحة الفني': '',
@@ -409,22 +424,12 @@
                         'المسؤول عن التوثيق': ''
                     }], { skipHeader: true, origin: -1 });
 
-                    // 4. ضبط اتجاه الورقة ليكون من اليمين إلى اليسار (RTL) ليتناسب مع اللغة العربية بشكل ممتاز عند فتحه في Excel
                     if(!worksheet['!views']) worksheet['!views'] = [{}];
                     worksheet['!views'][0].RTL = true;
 
-                    // 5. بناء الملف وتحميله مباشرة للجهاز
                     const workbook = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(workbook, worksheet, "تقرير الحمولات والمواد");
-                    XLSX.writeFile(workbook, `كشف_حساب_حمولات_موقع_${new Date().toISOString().slice(0,10)}.xlsx`);
-                },
-
-                clearDatabase() {
-                    if (this.currentUser.role !== 'engineer') return;
-                    if (confirm("🚨 إجراء أمني حساس جداً: هل أنت متأكد من تصفير ومسح كافة الحمولات المسجلة من ذاكرة الجهاز؟ لا يمكن استرجاعها بعد ذلك.")) {
-                        localStorage.removeItem('LT_loads_history_v2');
-                        this.localLoads = [];
-                    }
+                    XLSX.utils.book_append_sheet(workbook, worksheet, "تقرير الحمولات والمواد السحابي");
+                    XLSX.writeFile(workbook, `كشف_حساب_حمولات_سحابي_${new Date().toISOString().slice(0,10)}.xlsx`);
                 }
             }
         }
