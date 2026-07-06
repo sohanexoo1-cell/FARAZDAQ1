@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoadTrack Pro - نظام إدارة الحمولات بالصلاحيات</title>
+    <title>LoadTrack Pro - نظام الحفظ الدائم والصلاحيات</title>
     <!-- Tailwind CSS للتصميم -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js لإدارة العمليات -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- LocalForage لإدارة قاعدة بيانات IndexedDB -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
     <!-- SheetJS لتصدير التقارير إلى Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
@@ -26,7 +24,7 @@
             <div class="text-center">
                 <span class="text-4xl">🔐</span>
                 <h2 class="text-2xl font-black text-gray-800 mt-2">بوابة تسجيل الدخول</h2>
-                <p class="text-xs text-gray-400 mt-1">نظام LoadTrack لإدارة الحمولات والمواد</p>
+                <p class="text-xs text-gray-400 mt-1">نظام LoadTrack المحمي للحفظ الدائم</p>
             </div>
             
             <div class="space-y-4">
@@ -77,7 +75,7 @@
                 </div>
                 <div class="flex gap-2 w-full sm:w-auto" x-show="currentUser.role === 'engineer'">
                     <template x-for="material in materials">
-                        <button @click="currentMaterial = material"
+                        <button @click="changeMaterial(material)"
                                 class="flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm"
                                 :class="currentMaterial === material ? 'bg-blue-600 text-white font-black scale-105' : 'bg-white text-blue-600 hover:bg-blue-100 border border-blue-300'"
                                 x-text="material"></button>
@@ -88,7 +86,7 @@
             <!-- لوحة الإحصائيات الفورية لجميع المستخدمين -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                    <span class="text-gray-500 font-medium text-xs">إجمالي حمولات الموقع</span>
+                    <span class="text-gray-500 font-medium text-xs">إجمالي حمولات الموقع الموثقة</span>
                     <span class="text-3xl font-black text-blue-600 mt-1" x-text="localLoads.length">0</span>
                 </div>
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
@@ -155,12 +153,12 @@
                 </div>
             </div>
 
-            <!-- التقارير والتصدير (المهندس يرى كل شيء والمراقب يسجل فقط) -->
+            <!-- التقارير والتصدير -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-100 pb-3">
                     <div>
                         <h2 class="font-bold text-gray-800 text-base">📊 فلترة الحمولات ومطابقتها</h2>
-                        <p class="text-xs text-gray-400">سجل حركات النقل المتزامنة مع قاعدة بيانات الجهاز الافتراضية</p>
+                        <p class="text-xs text-gray-400">سجل حركات النقل الدائمة المحفوظة على متصفح هذا الجهاز</p>
                     </div>
                     <!-- زر تصدير إكسل متاح حصرياً للمهندس فقط لمنع تسريب التقارير -->
                     <button x-show="currentUser.role === 'engineer'" @click="exportToExcel()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 shadow-md transition-all">
@@ -179,7 +177,7 @@
             <!-- السجل المحمي الفوري للحمولات المسجلة -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                    <span class="text-xs font-bold text-gray-500">🔒 سجل الحمولات (الحذف والتعديل معطل ومحمي تماماً)</span>
+                    <span class="text-xs font-bold text-gray-500">🔒 سجل الحمولات الثابت (الحذف والتعديل محمي ومقفل تماماً)</span>
                     <button x-show="currentUser.role === 'engineer'" @click="clearDatabase()" class="text-xs text-red-600 font-bold hover:underline">تصفير قاعدة البيانات ⚠️</button>
                 </div>
                 <div class="overflow-x-auto">
@@ -212,7 +210,7 @@
                                 </tr>
                             </template>
                             <tr x-show="filteredLoads().length === 0">
-                                <td colspan="7" class="p-8 text-center text-gray-400 font-normal">لا توجد بيانات مسجلة في قاعدة البيانات حالياً.</td>
+                                <td colspan="7" class="p-8 text-center text-gray-400 font-normal">لا توجد بيانات مسجلة في الذاكرة الدائمة حالياً.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -221,7 +219,7 @@
         </main>
     </div>
 
-    <!-- ================= 3. منطق الجافا سكريبت للحماية وتأمين البيانات ================= -->
+    <!-- ================= 3. منطق الجافا سكريبت للحماية وتثبيت البيانات ================= -->
     <script>
         function loadTrackApp() {
             return {
@@ -238,30 +236,32 @@
                 localLoads: [],
                 truckForm: { id: null, number: '', driver: '', capacity: 12 },
 
-                async initApp() {
-                    // ربط قاعدة البيانات المتطورة IndexedDB المحمية ضد الفقدان والمسح العشوائي
-                    window.trucksDB = localforage.createInstance({ name: "Secure_LoadTrack_Trucks" });
-                    window.loadsDB = localforage.createInstance({ name: "Secure_LoadTrack_Loads" });
-
-                    const storedTrucks = await window.trucksDB.getItem('trucks_list');
-                    if (storedTrucks && storedTrucks.length > 0) {
-                        this.trucks = storedTrucks;
+                // نظام الاستدعاء التلقائي الفوري من الذاكرة المحلية المستقرة للمتصفح
+                initApp() {
+                    const storedTrucks = localStorage.getItem('LT_trucks_list');
+                    if (storedTrucks) {
+                        this.trucks = JSON.parse(storedTrucks);
                     } else {
-                        // قلابات افتراضية عند أول تشغيل
+                        // قلابات افتراضية عند التشغيل لأول مرة فقط
                         this.trucks = [
                             { id: 1, number: "أ-1029", driver: "محمد جاسم", capacity: 12 },
                             { id: 2, number: "ب-5543", driver: "علاء حسين", capacity: 18 }
                         ];
-                        await window.trucksDB.setItem('trucks_list', this.trucks);
+                        localStorage.setItem('LT_trucks_list', JSON.stringify(this.trucks));
                     }
 
-                    const storedLoads = await window.loadsDB.getItem('loads_history');
+                    const storedLoads = localStorage.getItem('LT_loads_history');
                     if (storedLoads) {
-                        this.localLoads = storedLoads;
+                        this.localLoads = JSON.parse(storedLoads);
+                    }
+
+                    const storedMaterial = localStorage.getItem('LT_current_material');
+                    if (storedMaterial) {
+                        this.currentMaterial = storedMaterial;
                     }
                 },
 
-                // التحقق من الصلاحيات بالرموز المحددة بدقة
+                // التحقق من الصلاحيات بالرموز الثابتة
                 verifyAndLogin() {
                     if (!this.username.trim()) {
                         alert("يرجى كتابة اسم المستخدم أولاً لتسجيل العمليات باسمك.");
@@ -275,7 +275,7 @@
                         this.currentUser = { name: this.username, role: 'inspector' };
                         this.isLoggedIn = true;
                     } else {
-                        alert("الرمز السري (PIN) غير صحيح! يرجى إدخال الرمز الصحيح للمهندس أو المراقب.");
+                        alert("الرمز السري (PIN) غير صحيح! يرجى إدخال الرمز المخصص لك.");
                         this.pinCode = '';
                     }
                 },
@@ -287,8 +287,15 @@
                     this.currentUser = { name: '', role: '' };
                 },
 
-                // تسجيل حمولة بضغطة زر واحدة (مفتوح للطرفين مع حفظ اسم من سجلها)
-                async registerLoad(truck) {
+                // تغيير المادة وحفظها هندسياً في الذاكرة
+                changeMaterial(material) {
+                    if (this.currentUser.role !== 'engineer') return;
+                    this.currentMaterial = material;
+                    localStorage.setItem('LT_current_material', material);
+                },
+
+                // تسجيل حمولة وحفظها فورياً في الذاكرة الدائمة
+                registerLoad(truck) {
                     const now = new Date();
                     const timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                     const dateStr = now.toLocaleDateString('ar-EG');
@@ -309,7 +316,8 @@
                     };
 
                     this.localLoads.unshift(newLoad);
-                    await window.loadsDB.setItem('loads_history', this.localLoads);
+                    // التثبيت الفوري في الذاكرة الدائمة لـ localStorage
+                    localStorage.setItem('LT_loads_history', JSON.stringify(this.localLoads));
                 },
 
                 getTruckLoadCount(truckId) {
@@ -325,8 +333,8 @@
                     return this.localLoads.filter(l => l.material === this.filterType);
                 },
 
-                // برمجيات إدارة القلابات (محمية خلف صلاحية حساب المهندس فقط)
-                async saveTruck() {
+                // برمجيات إدارة القلابات (محمية ومقفلة للمهندس فقط)
+                saveTruck() {
                     if (this.currentUser.role !== 'engineer') {
                         alert("خطأ أمني: لا تملك الصلاحية لتنفيذ هذا الإجراء!");
                         return;
@@ -353,7 +361,7 @@
                         this.trucks.push(newTruck);
                     }
 
-                    await window.trucksDB.setItem('trucks_list', this.trucks);
+                    localStorage.setItem('LT_trucks_list', JSON.stringify(this.trucks));
                     this.resetTruckForm();
                 },
 
@@ -362,14 +370,14 @@
                     this.truckForm = { ...truck };
                 },
 
-                async deleteTruck(id) {
+                deleteTruck(id) {
                     if (this.currentUser.role !== 'engineer') {
                         alert("خطأ أمني: الحذف متاح للمهندس فقط!");
                         return;
                     }
                     if (confirm("هل أنت متأكد من حذف هذا القلاب بالكامل من النظام؟")) {
                         this.trucks = this.trucks.filter(t => t.id !== id);
-                        await window.trucksDB.setItem('trucks_list', this.trucks);
+                        localStorage.setItem('LT_trucks_list', JSON.stringify(this.trucks));
                     }
                 },
 
@@ -377,7 +385,7 @@
                     this.truckForm = { id: null, number: '', driver: '', capacity: 12 };
                 },
 
-                // تصدير إكسل (مهندس فقط)
+                // تصدير التقارير لإكسل (مفتوح للمهندس فقط)
                 exportToExcel() {
                     if (this.currentUser.role !== 'engineer') return;
                     const dataToExport = this.filteredLoads().map(l => ({
@@ -388,7 +396,7 @@
                         'السعة (م³)': l.capacity,
                         'الوقت والتحميل': l.time,
                         'التاريخ': l.date,
-                        'المراقب المسجل': l.recordedBy
+                        'المسؤول عن التسجيل': l.recordedBy
                     }));
 
                     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -397,10 +405,11 @@
                     XLSX.writeFile(workbook, `تقرير_LoadTrack_${new Date().toISOString().slice(0,10)}.xlsx`);
                 },
 
-                async clearDatabase() {
+                // تصفير البيانات (محمي ومقفل للمهندس فقط)
+                clearDatabase() {
                     if (this.currentUser.role !== 'engineer') return;
-                    if (confirm("هل أنت متأكد من مسح وتصفير السجلات؟ لا يمكن التراجع عن هذا الإجراء.")) {
-                        await window.loadsDB.removeItem('loads_history');
+                    if (confirm("تحذير هندسي: هل أنت متأكد من مسح وتصفير السجلات؟ لا يمكن التراجع عن هذا الإجراء.")) {
+                        localStorage.removeItem('LT_loads_history');
                         this.localLoads = [];
                     }
                 }
