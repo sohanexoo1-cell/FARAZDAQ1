@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoadTrack Pro - النظام السحابي</title>
+    <title>LoadTrack Pro - النظام السحابي المطور</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -26,7 +26,7 @@
             <div class="text-center space-y-2">
                 <div class="inline-flex p-4 bg-blue-500/10 text-blue-400 rounded-2xl text-3xl font-bold mb-2">☁️</div>
                 <h2 class="text-2xl font-black text-white">بوابة LoadTrack السحابية</h2>
-                <p class="text-xs text-slate-400 font-medium">مزامنة فورية للموقع بين الهاتف والكمبيوتر</p>
+                <p class="text-xs text-slate-400 font-medium">مزامنة فورية للموقع ونظام إدارة وتحليل متطور</p>
             </div>
             
             <div class="space-y-4">
@@ -49,7 +49,7 @@
         <header class="bg-slate-950 text-white shadow-xl sticky top-0 z-50 border-b border-slate-800">
             <div class="max-w-7xl mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
                 <div class="flex items-center gap-2 sm:gap-3">
-                    <span class="text-lg sm:text-xl font-black tracking-tight text-blue-400">🚚 LoadTrack <span class="text-white font-light text-xs bg-blue-600 px-1.5 py-0.5 rounded-md">Cloud</span></span>
+                    <span class="text-lg sm:text-xl font-black tracking-tight text-blue-400">🚚 LoadTrack <span class="text-white font-light text-xs bg-blue-600 px-1.5 py-0.5 rounded-md">Cloud Pro</span></span>
                     <span class="text-[10px] sm:text-xs px-2 py-0.5 sm:py-1 rounded-xl font-bold border" 
                           :class="currentUser.role === 'engineer' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-blue-500/10 text-blue-400 border-blue-500/30'"
                           x-text="currentUser.role === 'engineer' ? 'مهندس مسؤول 🛠️' : 'مراقب الموقع 📋'"></span>
@@ -62,7 +62,47 @@
         </header>
 
         <main class="max-w-7xl mx-auto px-3 sm:px-4 py-6 space-y-6 w-full flex-1">
-            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 p-4 sm:p-5 rounded-2xl text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-blue-600/30">
+            
+            <div x-show="currentUser.role === 'engineer'" class="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">🗄️</span>
+                    <div>
+                        <h3 class="text-xs font-black text-slate-400">نظام الأرشفة التاريخي والتحكم باليوم:</h3>
+                        <p class="text-xs font-bold text-slate-200 mt-0.5" x-text="viewingPastDate ? 'أنت تستعرض الآن أرشيف يوم: ' + selectedArchiveDate : 'تعرض حالياً: وجبة اليوم الحالي (تصفير تلقائي كل يوم)'"></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <input type="date" x-model="archiveDateInput" @change="loadArchiveDay()" class="bg-slate-900 border border-slate-700 p-2 rounded-xl text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-blue-500 flex-1 sm:flex-none">
+                    <button x-show="viewingPastDate" @click="resetToCurrentDay()" class="bg-blue-600 text-white text-xs font-black px-3 py-2 rounded-xl">العودة لليوم الحاضر 🔄</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" x-show="!viewingPastDate">
+                <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700 space-y-3">
+                    <h3 class="text-xs font-black text-blue-400 flex items-center gap-1.5">⚡ ملخص كفاءة آليات الموقع اليوم:</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/40">
+                            <span class="text-[10px] text-slate-400 font-bold block">🔥 الأكثر إنتاجية وحملاً</span>
+                            <span class="text-xs font-black text-emerald-400 mt-1 block truncate" x-text="stats.mostActiveTruck || 'لا توجد بيانات'"></span>
+                        </div>
+                        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/40">
+                            <span class="text-[10px] text-slate-400 font-bold block">⚠️ الأقل حركة ونقلاً</span>
+                            <span class="text-xs font-black text-rose-400 mt-1 block truncate" x-text="stats.leastActiveTruck || 'لا توجد بيانات'"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700 space-y-2">
+                    <h3 class="text-xs font-black text-amber-400">⏱️ معدل توقيت سرعة النقل وزمن الدورة (Cycle Time):</h3>
+                    <p class="text-[11px] text-slate-400 font-medium">يتم احتساب متوسط الوقت المستغرق لكل رحلة بناءً على فارق التوقيت التلقائي:</p>
+                    <div class="bg-slate-900/60 p-3 rounded-xl text-center border border-slate-700/40">
+                        <span class="text-2xl font-black text-white" x-text="stats.averageCycleTime ? stats.averageCycleTime + ' دقيقة' : 'بانتظار النقلة الثانية لوضع الحساب'">--</span>
+                        <span class="text-[10px] text-slate-400 font-bold block mt-0.5">متوسط زمن دورة القلابات العام بالموقع</span>
+                    </div>
+                </div>
+            </div>
+
+            <div x-show="!viewingPastDate" class="bg-gradient-to-r from-blue-700 to-indigo-800 p-4 sm:p-5 rounded-2xl text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-blue-600/30">
                 <div>
                     <h3 class="text-xs font-bold text-blue-200 uppercase tracking-wider">📋 مادة التحميل النشطة بالموقع (سحابي):</h3>
                     <p class="text-xl sm:text-2xl font-black text-white mt-0.5" x-text="currentMaterial"></p>
@@ -79,20 +119,20 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-700/60">
-                    <span class="text-slate-400 font-bold text-xs block">إجمالي النقلات السحابية</span>
-                    <span class="text-3xl font-black text-blue-400 mt-1 block" x-text="cloudLoads.length">0</span>
+                    <span class="text-slate-400 font-bold text-xs block" x-text="viewingPastDate ? 'إجمالي نقلات هذا اليوم الأرشيفي' : 'إجمالي النقلات لليوم الحالي'"></span>
+                    <span class="text-3xl font-black text-blue-400 mt-1 block" x-text="filteredLoads.length">0</span>
                 </div>
                 <div class="bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-700/60">
-                    <span class="text-slate-400 font-bold text-xs block">إجمالي الحجم المنقول لمطابقة الحسابات</span>
+                    <span class="text-slate-400 font-bold text-xs block" x-text="viewingPastDate ? 'إجمالي حجم الحساب للأرشيف المنقول' : 'إجمالي الحجم المنقول اليوم لمطابقة الحساب'"></span>
                     <span class="text-2xl font-black text-amber-400 mt-1 block" x-text="getTotalVolume() + ' م³'">0 م³</span>
                 </div>
                 <div class="bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-700/60">
-                    <span class="text-slate-400 font-bold text-xs block">القلابات العاملة بالموقع</span>
+                    <span class="text-slate-400 font-bold text-xs block">القلابات المسجلة بالنظام</span>
                     <span class="text-3xl font-black text-emerald-400 mt-1 block" x-text="trucks.length">0</span>
                 </div>
             </div>
 
-            <div x-show="currentUser.role === 'engineer'" class="bg-slate-800 p-4 sm:p-6 rounded-2xl border border-slate-700 space-y-4">
+            <div x-show="currentUser.role === 'engineer' && !viewingPastDate" class="bg-slate-800 p-4 sm:p-6 rounded-2xl border border-slate-700 space-y-4">
                 <h2 class="text-xs sm:text-sm font-black text-slate-200">🛠️ إدارة اسطول القلابات (خاص بالمهندس)</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
                     <div>
@@ -104,17 +144,17 @@
                         <input type="text" x-model="truckForm.driver" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-400 mb-1">السعة (م³):</label>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">السعة الافتراضية (م³):</label>
                         <input type="number" x-model.number="truckForm.capacity" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     <div class="flex gap-2">
-                        <button @click="saveTruck()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black p-2.5 rounded-xl text-xs transition-all" x-text="truckForm.id ? 'تحديث' : 'إضافة قلاب سحابي'"></button>
+                        <button @click="saveTruck()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black p-2.5 rounded-xl text-xs transition-all" x-text="truckForm.id ? 'تحديث الفني' : 'إضافة قلاب سحابي'"></button>
                         <button x-show="truckForm.id" @click="resetTruckForm()" class="bg-slate-700 text-slate-300 p-2.5 rounded-xl text-xs">إلغاء</button>
                     </div>
                 </div>
             </div>
 
-            <div class="space-y-3">
+            <div class="space-y-3" x-show="!viewingPastDate">
                 <h2 class="text-[11px] font-black text-slate-400 uppercase tracking-wider">🦺 تسجيل حمولة بضغطة واحدة:</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                     <template x-for="truck in trucks" :key="truck.id">
@@ -129,7 +169,7 @@
                                     <span class="text-[10px] text-amber-400 font-bold sm:block mt-0.5" x-text="'سعة: ' + truck.capacity + ' م³'"></span>
                                 </div>
                                 <div class="mt-2 pt-2 border-t border-slate-700/50 hidden sm:flex justify-between items-center">
-                                    <span class="text-[10px] bg-slate-900 px-2 py-1 rounded font-bold text-slate-300" x-text="getTruckLoadCount(truck.number) + ' نقلة'"></span>
+                                    <span class="text-[10px] bg-slate-900 px-2 py-1 rounded font-bold text-slate-300" x-text="getTruckLoadCount(truck.number) + ' نقلة اليوم' || '0 نقلة'"></span>
                                     <span class="text-xs bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center font-bold">+</span>
                                 </div>
                             </button>
@@ -148,11 +188,43 @@
                 </div>
             </div>
 
+            <div x-show="editingLoadData" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                <div class="bg-slate-800 border border-slate-700 max-w-sm w-full rounded-2xl p-5 space-y-4 shadow-2xl">
+                    <h3 class="font-black text-sm text-white border-b border-slate-700 pb-2">✏️ تعديل تفاصيل النقلة سحابياً</h3>
+                    <div class="space-y-3 text-xs">
+                        <div>
+                            <label class="block font-bold text-slate-400 mb-1">رقم السيارة (اللوحة):</label>
+                            <input type="text" x-model="loadEditForm.truckNumber" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl font-bold text-white">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-400 mb-1">اسم السائق البشري:</label>
+                            <input type="text" x-model="loadEditForm.driverName" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl font-bold text-white">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-400 mb-1">الكمية الصافية للرحلة (م³):</label>
+                            <input type="number" x-model.number="loadEditForm.capacity" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl font-bold text-white">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-400 mb-1">نوع المادة:</label>
+                            <select x-model="loadEditForm.material" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl font-bold text-white">
+                                <template x-for="mat in materials">
+                                    <option :value="mat" x-text="mat"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 pt-2">
+                        <button @click="updateLoadInCloud()" class="flex-1 bg-blue-600 text-white font-black p-2.5 rounded-xl text-xs">حفظ التغييرات السحابية</button>
+                        <button @click="editingLoadData = false" class="bg-slate-700 text-slate-300 px-4 py-2.5 rounded-xl text-xs">إلغاء</button>
+                    </div>
+                </div>
+            </div>
+
             <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
                 <div class="p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/40 border-b border-slate-700">
                     <div>
                         <h2 class="font-black text-white text-sm sm:text-base">📊 سجل حركة النقل العام الفورية والمزامنة</h2>
-                        <p class="text-[11px] text-slate-400 mt-0.5">يتم تحديث الجدول تلقائياً وبشكل حي لجميع الأجهزة المتصلة.</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5" x-text="viewingPastDate ? 'أنت تستعرض السجلات الموثقة لليوم المؤرشف فقط.' : 'يتم تحديث الجدول تلقائياً وبشكل حي لجميع الأجهزة الميدانية الحالية.'"></p>
                     </div>
                     <button x-show="currentUser.role === 'engineer'" @click="exportToExcel()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg transition-all">
                         <span>📥 تصدير كشف حساب ممتاز (Excel)</span>
@@ -163,25 +235,36 @@
                     <table class="w-full text-right border-collapse">
                         <thead>
                             <tr class="bg-slate-900/50 text-slate-400 text-xs font-black border-b border-slate-700">
-                                <th class="p-4">رقم النقلة للقلاب</th>
+                                <th class="p-4">رقم نقلة الآلية</th>
                                 <th class="p-4">رقم اللوحة</th>
                                 <th class="p-4">اسم السائق</th>
                                 <th class="p-4">نوع المادة</th>
                                 <th class="p-4">الحجم الصافي</th>
+                                <th class="p-4">زمن الدورة الفارق</th>
                                 <th class="p-4">توقيت النقلة الميداني</th>
                                 <th class="p-4">المسؤول عن التوثيق</th>
+                                <th class="p-4" x-show="currentUser.role === 'engineer'">التحكم والتعديل</th>
                             </tr>
                         </thead>
                         <tbody class="text-xs divide-y divide-slate-700/50 text-slate-300 font-bold">
-                            <template x-for="(load, index) in cloudLoads" :key="index">
+                            <template x-for="(load, index) in filteredLoads" :key="load.id || index">
                                 <tr class="hover:bg-slate-900/20 transition-colors">
                                     <td class="p-4 text-blue-400" x-text="'#' + load.loadNumber"></td>
                                     <td class="p-4 font-mono text-slate-400" x-text="load.truckNumber"></td>
                                     <td class="p-4 text-white" x-text="load.driverName"></td>
                                     <td class="p-4"><span class="bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded border border-purple-500/20" x-text="load.material"></span></td>
                                     <td class="p-4 text-amber-400" x-text="load.capacity + ' م³'"></td>
+                                    <td class="p-4">
+                                        <span class="text-slate-400" x-text="load.cycleTime ? load.cycleTime + ' دقيقة ⏱️' : '--'"></span>
+                                    </td>
                                     <td class="p-4 text-slate-400 font-mono text-[11px]" x-text="load.time + ' - ' + load.date"></td>
                                     <td class="p-4 text-slate-400" x-text="load.recordedBy"></td>
+                                    <td class="p-4" x-show="currentUser.role === 'engineer'">
+                                        <div class="flex items-center gap-1.5">
+                                            <button @click="openEditLoadModal(load)" class="bg-amber-600/20 text-amber-400 border border-amber-500/30 px-2 py-1 rounded-md hover:bg-amber-600 hover:text-white transition-all text-[10px]">تعديل</button>
+                                            <button @click="deleteLoadFromCloud(load.id)" class="bg-rose-600/20 text-rose-400 border border-rose-500/30 px-2 py-1 rounded-md hover:bg-rose-600 hover:text-white transition-all text-[10px]">حذف</button>
+                                        </div>
+                                    </td>
                                 </tr>
                             </template>
                         </tbody>
@@ -189,11 +272,14 @@
                 </div>
 
                 <div class="block md:hidden divide-y divide-slate-700/60 bg-slate-900/30">
-                    <template x-for="(load, index) in cloudLoads" :key="index">
+                    <template x-for="(load, index) in filteredLoads" :key="load.id || index">
                         <div class="p-4 space-y-2 text-xs font-bold">
                             <div class="flex justify-between items-center">
                                 <span class="text-blue-400 font-black text-sm" x-text="'نقلة #' + load.loadNumber"></span>
-                                <span class="text-slate-400 text-[10px] font-mono" x-text="load.time"></span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-slate-500 text-[10px]" x-text="load.cycleTime ? 'الدورة: ' + load.cycleTime + ' د' : ''"></span>
+                                    <span class="text-slate-400 text-[10px] font-mono" x-text="load.time"></span>
+                                </div>
                             </div>
                             <div class="grid grid-cols-2 gap-y-1 text-slate-300">
                                 <div><span class="text-slate-500">السائق:</span> <span class="text-white" x-text="load.driverName"></span></div>
@@ -201,15 +287,18 @@
                                 <div><span class="text-slate-500">المادة:</span> <span class="text-purple-400" x-text="load.material"></span></div>
                                 <div><span class="text-slate-500">الحجم:</span> <span class="text-amber-400" x-text="load.capacity + ' م³'"></span></div>
                             </div>
-                            <div class="text-[10px] text-slate-500 pt-1 border-t border-slate-800/50 flex justify-between">
+                            <div class="text-[10px] text-slate-500 pt-1 border-t border-slate-800/50 flex justify-between items-center">
                                 <span x-text="'الموثق: ' + load.recordedBy"></span>
-                                <span x-text="load.date"></span>
+                                <div class="flex items-center gap-2" x-show="currentUser.role === 'engineer'">
+                                    <button @click="openEditLoadModal(load)" class="text-amber-400 font-black px-1">تعديل</button>
+                                    <button @click="deleteLoadFromCloud(load.id)" class="text-rose-400 font-black px-1">حذف</button>
+                                </div>
                             </div>
                         </div>
                     </template>
                 </div>
 
-                <div x-show="cloudLoads.length === 0" class="p-12 text-center text-slate-500 text-sm font-normal">لا توجد سجلات سحابية مسجلة حالياً بالموقع.</div>
+                <div x-show="filteredLoads.length === 0" class="p-12 text-center text-slate-500 text-sm font-normal">لا توجد سجلات سحابية مسجلة حالياً في هذا اليوم.</div>
             </div>
         </main>
     </div>
@@ -224,12 +313,25 @@
                 materials: ['سبيس', 'حصى خابط', 'دفان ترابي', 'مزيج كونكريت'],
                 currentMaterial: 'سبيس',
                 trucks: [],
-                cloudLoads: [],
+                allCloudLoads: [], // يحتوي على الحمولات السحابية بالكامل
+                filteredLoads: [], // يعرض حمولات اليوم المختار فقط (الأرشفة)
                 truckForm: { id: null, number: '', driver: '', capacity: 12 },
+                
+                // إدارة أرشفة الأيام التاريخية
+                archiveDateInput: '',
+                selectedArchiveDate: '',
+                viewingPastDate: false,
+
+                // تعديل الحمولات للمهندس
+                editingLoadData: false,
+                loadEditForm: { id: null, truckNumber: '', driverName: '', capacity: 0, material: '' },
+
+                // الإحصائيات الذكية والموجز
+                stats: { mostActiveTruck: '', leastActiveTruck: '', averageCycleTime: 0 },
                 db: null,
 
                 initFirebase() {
-                    // بيانات Firebase الحقيقية لمشروعك 
+                    // بيانات Firebase الحقيقية للمشروع الخاص بك
                     var firebaseConfig = {
                         apiKey: "AIzaSyB_gZyGGMeNg_jLIo1YbQ9tfmHyTdBBebs",
                         authDomain: "trackss-pro.firebaseapp.com",
@@ -242,11 +344,15 @@
                     };
 
                     try {
-                        // تفعيل الاتصال بقواعد بيانات جوجل السحابية المباشرة
                         firebase.initializeApp(firebaseConfig);
                         this.db = firebase.firestore();
 
-                        // مزامنة حية وفورية للقلابات بين جميع هواتف وحواسيب العمل
+                        // تعيين تاريخ اليوم الافتراضي في حقل الإدخال
+                        var today = new Date();
+                        this.archiveDateInput = today.toISOString().split('T')[0];
+                        this.selectedArchiveDate = today.toLocaleDateString('ar-EG');
+
+                        // مزامنة حية وفورية للقلابات بين جميع الحواسيب والهواتف
                         this.db.collection("trucks").onSnapshot((snapshot) => {
                             this.trucks = [];
                             snapshot.forEach((doc) => {
@@ -254,15 +360,17 @@
                             });
                         });
 
-                        // مزامنة النقلات والحمولات لحظياً للجميع وبدون تحديث الصفحة
-                        this.db.collection("loads").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
-                            this.cloudLoads = [];
+                        // المزامنة الحية للحمولات وجدولة وتصفية البيانات أوتوماتيكياً (الأرشيف الحي)
+                        this.db.collection("loads").orderBy("timestamp", "asc").onSnapshot((snapshot) => {
+                            this.allCloudLoads = [];
                             snapshot.forEach((doc) => {
-                                this.cloudLoads.push(doc.data());
+                                this.allCloudLoads.push(Object.assign({ id: doc.id }, doc.data()));
                             });
+                            // إعادة تشغيل التصفية والحساب الذكي فور حدوث أي تعديل بالسحابة
+                            this.filterAndCalculateLoads();
                         });
 
-                        // مزامنة نوع المواد النشطة بين المهندس والمراقبين ميدانياً
+                        // مزامنة المادة النشطة بالموقع
                         this.db.collection("siteSettings").onSnapshot((snapshot) => {
                             snapshot.forEach((doc) => {
                                 if (doc.id === "current") {
@@ -271,38 +379,89 @@
                             });
                         });
                     } catch (error) {
-                        console.error("Firebase Initialization Error: ", error);
+                        console.error("Firebase Error: ", error);
                     }
                 },
 
-                verifyAndLogin() {
-                    if (!this.username.trim()) {
-                        alert("يرجى إدخال اسمك الثلاثي للتوثيق.");
+                filterAndCalculateLoads() {
+                    // 1. تصفية الحمولات لعرض اليوم المختار فقط (نظام الأرشفة الذكي)
+                    this.filteredLoads = this.allCloudLoads.filter(load => {
+                        return load.date === this.selectedArchiveDate;
+                    });
+
+                    // قلب الترتيب ليعرض الأحدث في أعلى الجدول دائماً
+                    this.filteredLoads.reverse();
+
+                    // 2. احتساب أوقات زمن الدورة (Cycle Time) لكل آلية
+                    var truckGroups = {};
+                    // نقوم بمعالجة الحمولات مرتبة زمنياً من الأقدم للأحدث لحساب الفوارق بدقة
+                    var chronologicalLoads = [...this.allCloudLoads].sort((a,b) => a.timestamp - b.timestamp);
+                    
+                    chronologicalLoads.forEach(load => {
+                        if (!truckGroups[load.truckNumber]) {
+                            truckGroups[load.truckNumber] = [];
+                        }
+                        var lastLoad = truckGroups[load.truckNumber][truckGroups[load.truckNumber].length - 1];
+                        if (lastLoad && lastLoad.date === load.date) {
+                            // حساب الفارق بالدقائق بين النقلة الحالية والسابقة في نفس اليوم
+                            var diffMs = load.timestamp - lastLoad.timestamp;
+                            load.cycleTime = Math.round(diffMs / 60000);
+                        } else {
+                            load.cycleTime = null; // النقلة الأولى في اليوم لا تملك دورة سابقة
+                        }
+                        truckGroups[load.truckNumber].push(load);
+                    });
+
+                    // 3. احتساب الإحصائيات والموجز (الأكثر والأقل والأزمنة)
+                    this.calculateAdvancedStats();
+                },
+
+                calculateAdvancedStats() {
+                    // نعتمد الإحصائيات على الوجبة المعروضة حالياً بالصفحة
+                    if (this.filteredLoads.length === 0) {
+                        this.stats = { mostActiveTruck: '', leastActiveTruck: '', averageCycleTime: 0 };
                         return;
                     }
-                    if (this.pinCode === '00000') {
-                        this.currentUser = { name: this.username, role: 'engineer' };
-                        this.isLoggedIn = true;
-                    } else if (this.pinCode === '5151') {
-                        this.currentUser = { name: this.username, role: 'inspector' };
-                        this.isLoggedIn = true;
-                    } else {
-                        alert("الرمز السري خاطئ.");
-                        this.pinCode = '';
-                    }
+
+                    var counts = {};
+                    var totalCycleTime = 0;
+                    var cycleCount = 0;
+
+                    this.filteredLoads.forEach(l => {
+                        // حساب التكرارات للآليات
+                        counts[l.driverName] = (counts[l.driverName] || 0) + 1;
+                        // جمع أوقات الدورات المحسوبة
+                        if (l.cycleTime) {
+                            totalCycleTime += l.cycleTime;
+                            cycleCount++;
+                        }
+                    });
+
+                    // استخراج الأكثر والأقل حركة
+                    var sortedTrucks = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+                    
+                    this.stats.mostActiveTruck = sortedTrucks[0] ? `${sortedTrucks[0]} (${counts[sortedTrucks[0]]} نقلة)` : '';
+                    this.stats.leastActiveTruck = sortedTrucks[sortedTrucks.length - 1] && sortedTrucks.length > 1 ? `${sortedTrucks[sortedTrucks.length - 1]} (${counts[sortedTrucks[sortedTrucks.length - 1]]} نقلة)` : '';
+                    this.stats.averageCycleTime = cycleCount > 0 ? Math.round(totalCycleTime / cycleCount) : 0;
                 },
 
-                logout() {
-                    this.isLoggedIn = false;
-                    this.pinCode = '';
-                    this.username = '';
-                    this.currentUser = { name: '', role: '' };
+                loadArchiveDay() {
+                    if (!this.archiveDateInput) return;
+                    var d = new Date(this.archiveDateInput);
+                    this.selectedArchiveDate = d.toLocaleDateString('ar-EG');
+                    
+                    var todayStr = new Date().toLocaleDateString('ar-EG');
+                    this.viewingPastDate = (this.selectedArchiveDate !== todayStr);
+                    
+                    this.filterAndCalculateLoads();
                 },
 
-                changeMaterial(material) {
-                    if (this.currentUser.role !== 'engineer') return;
-                    this.currentMaterial = material;
-                    this.db.collection("siteSettings").doc("current").set({ material: material }).catch(function(){});
+                resetToCurrentDay() {
+                    var today = new Date();
+                    this.archiveDateInput = today.toISOString().split('T')[0];
+                    this.selectedArchiveDate = today.toLocaleDateString('ar-EG');
+                    this.viewingPastDate = false;
+                    this.filterAndCalculateLoads();
                 },
 
                 registerLoad(truck) {
@@ -310,13 +469,14 @@
                     var timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                     var dateStr = now.toLocaleDateString('ar-EG');
                     
-                    var currentTruckLoads = this.cloudLoads.filter(l => l.truckNumber === truck.number).length;
-                    var nextLoadNumber = currentTruckLoads + 1;
+                    // حساب رقم النقلة بناءً على السجل التاريخي لليوم الحالي للقلاب
+                    var currentTruckTodayLoads = this.allCloudLoads.filter(l => l.truckNumber === truck.number && l.date === dateStr).length;
+                    var nextLoadNumber = currentTruckTodayLoads + 1;
 
                     var newLoad = {
                         truckNumber: truck.number,
                         driverName: truck.driver,
-                        capacity: truck.capacity,
+                        capacity: Number(truck.capacity),
                         loadNumber: nextLoadNumber,
                         material: this.currentMaterial,
                         time: timeStr,
@@ -326,16 +486,86 @@
                     };
 
                     this.db.collection("loads").add(newLoad).catch((e) => {
-                        this.cloudLoads.unshift(newLoad);
+                        console.error("Local save fallback error: ", e);
                     });
                 },
 
+                // حذف نقلة معينة من السحابة (خاص بالمهندس)
+                deleteLoadFromCloud(id) {
+                    if (this.currentUser.role !== 'engineer') return;
+                    if (confirm("🚨 هل أنت متأكد من حذف هذه النقلة تماماً من قاعدة البيانات السحابية الحية؟")) {
+                        this.db.collection("loads").doc(id).delete()
+                        .then(() => alert("تم حذف النقلة وتحديث الأرقام بنجاح."))
+                        .catch(err => alert("فشل الحذف: " + err));
+                    }
+                },
+
+                // فتح المودال وتجهيز بيانات التعديل لنقلة معينة (خاص بالمهندس)
+                openEditLoadModal(load) {
+                    if (this.currentUser.role !== 'engineer') return;
+                    this.loadEditForm = Object.assign({}, load);
+                    this.editingLoadData = true;
+                },
+
+                // تحديث بيانات الكمية والسيارة في Firestore
+                updateLoadInCloud() {
+                    if (this.currentUser.role !== 'engineer') return;
+                    if (!this.loadEditForm.truckNumber.trim() || !this.loadEditForm.driverName.trim() || !this.loadEditForm.capacity) {
+                        alert("يرجى عدم ترك الحقول فارغة.");
+                        return;
+                    }
+
+                    this.db.collection("loads").doc(this.loadEditForm.id).update({
+                        truckNumber: this.loadEditForm.truckNumber,
+                        driverName: this.loadEditForm.driverName,
+                        capacity: Number(this.loadEditForm.capacity),
+                        material: this.loadEditForm.material
+                    })
+                    .then(() => {
+                        this.editingLoadData = false;
+                        alert("تم تحديث وتعديل تفاصيل الحمولة السحابية بنجاح! 🎉");
+                    })
+                    .catch(err => alert("خطأ أثناء التعديل: " + err));
+                },
+
                 getTruckLoadCount(truckNumber) {
-                    return this.cloudLoads.filter(l => l.truckNumber === truckNumber).length;
+                    var todayStr = new Date().toLocaleDateString('ar-EG');
+                    return this.allCloudLoads.filter(l => l.truckNumber === truckNumber && l.date === todayStr).length;
                 },
 
                 getTotalVolume() {
-                    return this.cloudLoads.reduce((sum, load) => sum + load.capacity, 0);
+                    return this.filteredLoads.reduce((sum, load) => sum + Number(load.capacity), 0);
+                },
+
+                verifyAndLogin() {
+                    if (!this.username.trim()) {
+                        alert("يرجى إدخال اسمك الثلاثي للتوثيق الميداني.");
+                        return;
+                    }
+                    if (this.pinCode === '00000') {
+                        this.currentUser = { name: this.username, role: 'engineer' };
+                        this.isLoggedIn = true;
+                    } else if (this.pinCode === '5151') {
+                        this.currentUser = { name: this.username, role: 'inspector' };
+                        this.isLoggedIn = true;
+                    } else {
+                        alert("الرمز السري (PIN) خاطئ.");
+                        this.pinCode = '';
+                    }
+                },
+
+                logout() {
+                    this.isLoggedIn = false;
+                    this.pinCode = '';
+                    this.username = '';
+                    this.currentUser = { name: '', role: '' };
+                    this.resetToCurrentDay();
+                },
+
+                changeMaterial(material) {
+                    if (this.currentUser.role !== 'engineer') return;
+                    this.currentMaterial = material;
+                    this.db.collection("siteSettings").doc("current").set({ material: material }).catch(function(){});
                 },
 
                 saveTruck() {
@@ -367,7 +597,7 @@
 
                 deleteTruck(id) {
                     if (this.currentUser.role !== 'engineer') return;
-                    if (confirm("هل أنت متأكد من حذف القلاب سحابياً؟")) {
+                    if (confirm("هل أنت متأكد من حذف القلاب نهائياً؟")) {
                         this.db.collection("trucks").doc(id).delete().catch(function(){});
                     }
                 },
@@ -379,14 +609,15 @@
                 exportToExcel() {
                     if (this.currentUser.role !== 'engineer') return;
                     
-                    var rows = this.cloudLoads.map(l => ({
+                    var rows = this.filteredLoads.map(l => ({
                         'رقم النقلة للقلاب': l.loadNumber,
                         'رقم اللوحة الفني': l.truckNumber,
-                        'اسم السائق الثابت': l.driverName,
+                        'اسم السائق': l.driverName,
                         'المادة المنقولة': l.material,
-                        'الحجم الصافي (متر مكعب)': l.capacity,
+                        'الحجم الصافي (م³)': l.capacity,
+                        'زمن الدورة (بالدقائق)': l.cycleTime || 'النقلة الأولى',
                         'وقت تسجيل النقلة': l.time,
-                        'التاريخ': l.date,
+                        'التاريخ الإنشائي': l.date,
                         'المسؤول عن التوثيق': l.recordedBy
                     }));
 
@@ -396,11 +627,12 @@
                     XLSX.utils.sheet_add_json(worksheet, [{
                         'رقم النقلة للقلاب': 'الإجمالي الكلي الحجمي:',
                         'رقم اللوحة الفني': '',
-                        'اسم السائق الثابت': '',
+                        'اسم السائق': '',
                         'المادة المنقولة': '',
-                        'الحجم الصافي (متر مكعب)': totalVolume,
+                        'الحجم الصافي (م³)': totalVolume,
+                        'زمن الدورة (بالدقائق)': '',
                         'وقت تسجيل النقلة': 'متر مكعب (م³)',
-                        'التاريخ': '',
+                        'التاريخ الإنشائي': '',
                         'المسؤول عن التوثيق': ''
                     }], { skipHeader: true, origin: -1 });
 
@@ -408,8 +640,8 @@
                     worksheet['!views'][0].RTL = true;
 
                     var workbook = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(workbook, worksheet, "تقرير الحمولات والمواد السحابي");
-                    XLSX.writeFile(workbook, "كشف_حساب_حمولات_سحابي.xlsx");
+                    XLSX.utils.book_append_sheet(workbook, worksheet, "تقرير الحمولات والمواد");
+                    XLSX.writeFile(workbook, `كشف_حساب_حمولات_${this.selectedArchiveDate.replace(/\//g, '-')}.xlsx`);
                 }
             }
         }
