@@ -3,14 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoadTrack Pro - النظام السحابي المطور</title>
+    <title>LoadTrack Pro - النظام السحابي متعدد الفروع</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- SheetJS Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
+    <!-- 📡 روابط مكتبات فايربيس الصحيحة والكاملة للنسخة التقليدية المتوافقة -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
+    <!-- خط القاهرة -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Cairo', sans-serif; }
@@ -21,6 +26,7 @@
       x-data="loadTrackCloudApp()" 
       x-init="initFirebase()">
 
+    <!-- ================= 1. شاشة تسجيل الدخول الموحدة ================= -->
     <div x-show="!isLoggedIn" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4">
         <div class="bg-slate-800/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-2xl max-w-md w-full space-y-6 border border-slate-700 transition-all">
             <div class="text-center space-y-2">
@@ -39,13 +45,59 @@
                     <input type="text" x-model="username" class="w-full p-3.5 bg-slate-900 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-center text-white transition-all" placeholder="اكتب الاسم الثلاثي">
                 </div>
                 <button @click="verifyAndLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black p-3.5 rounded-xl transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98] text-sm">
-                    تسجيل الدخول ومزامنة الأجهزة 📡
+                    تسجيل الدخول ومتابعة الفروع 📡
                 </button>
             </div>
         </div>
     </div>
 
-    <div x-show="isLoggedIn" x-cloak class="flex-1 flex flex-col">
+    <!-- ================= 2. شاشة اختيار الفرع المستقل ================= -->
+    <div x-show="isLoggedIn && !selectedBranch" x-cloak class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4">
+        <div class="bg-slate-800/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-2xl max-w-2xl w-full space-y-6 border border-slate-700">
+            <div class="text-center space-y-2">
+                <span class="text-3xl">🏢</span>
+                <h2 class="text-xl font-black text-white">اختر فرع العمل الميداني للمتابعة</h2>
+                <p class="text-xs text-slate-400 font-medium" x-text="'المستخدم الحالي: ' + currentUser.name + ' (' + (currentUser.role === 'engineer' ? 'مهندس مسؤول' : 'مراقب موقع') + ')'"></p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+                <!-- الفرع الأول: تاج الدين -->
+                <button @click="selectBranch('taj_din')" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-900 border border-slate-700 hover:border-blue-500 hover:bg-slate-900/80 text-right transition-all group active:scale-[0.99]">
+                    <div class="p-3.5 bg-blue-500/10 text-blue-400 rounded-xl text-xl group-hover:scale-110 transition-transform">🚚</div>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-black text-white">الفرع الأول: مقلع تراب تاج الدين</h4>
+                        <p class="text-[11px] text-slate-400 mt-1 font-medium">يحتوي على الأرشيف والبيانات والقلابات السابقة بالكامل بدون أي حذف.</p>
+                    </div>
+                </button>
+
+                <!-- الفرع الثاني: النفافشة -->
+                <button @click="selectBranch('nafafsha')" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-900 border border-slate-700 hover:border-amber-500 hover:bg-slate-900/80 text-right transition-all group active:scale-[0.99]">
+                    <div class="p-3.5 bg-amber-500/10 text-amber-400 rounded-xl text-xl group-hover:scale-110 transition-transform">📞</div>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-black text-white">الفرع الثاني: مقلع تراب النفافشة (المجهز هاتف)</h4>
+                        <p class="text-[11px] text-slate-400 mt-1 font-medium">نسخة مستقلة وجديدة بالكامل بنفس التفاصيل والتحليلات والتحكم.</p>
+                    </div>
+                </button>
+
+                <!-- الفرع الثالث: منطقة الزور -->
+                <button @click="selectBranch('zor')" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-900 border border-slate-700 hover:border-emerald-500 hover:bg-slate-900/80 text-right transition-all group active:scale-[0.99]">
+                    <div class="p-3.5 bg-emerald-500/10 text-emerald-400 rounded-xl text-xl group-hover:scale-110 transition-transform">🚧</div>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-black text-white">الفرع الثالث: مقلع تراب منطقة الزور</h4>
+                        <p class="text-[11px] text-slate-400 mt-1 font-medium">نسخة مستقلة وجديدة بالكامل بنفس التفاصيل والتحليلات والتحكم.</p>
+                    </div>
+                </button>
+            </div>
+
+            <div class="pt-4 border-t border-slate-700/50 flex justify-between">
+                <button @click="logout()" class="text-xs font-bold text-rose-400 hover:text-rose-300">تسجيل الخروج ↩️</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 3. الواجهة الرئيسية الهجينة الذكية (بعد اختيار الفرع) ================= -->
+    <div x-show="isLoggedIn && selectedBranch" x-cloak class="flex-1 flex flex-col">
+        <!-- الهيدر العلوي -->
         <header class="bg-slate-950 text-white shadow-xl sticky top-0 z-50 border-b border-slate-800">
             <div class="max-w-7xl mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
                 <div class="flex items-center gap-2 sm:gap-3">
@@ -55,20 +107,28 @@
                           x-text="currentUser.role === 'engineer' ? 'مهندس مسؤول 🛠️' : 'مراقب الموقع 📋'"></span>
                 </div>
                 <div class="flex items-center gap-2 sm:gap-4">
-                    <span class="text-[10px] sm:text-xs font-bold text-slate-400 hidden xs:inline-block">المستخدم: <span class="text-white text-xs sm:text-sm font-black" x-text="currentUser.name"></span></span>
+                    <button @click="changeBranch()" class="text-[10px] sm:text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-xl font-bold transition-all border border-slate-700">تغيير الفرع 🏢</button>
                     <button @click="logout()" class="text-[10px] sm:text-xs bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-2.5 py-1.5 rounded-xl font-bold transition-all border border-rose-500/30">خروج</button>
                 </div>
             </div>
         </header>
 
+        <!-- شريط التنبيه باسم الفرع النشط -->
+        <div class="bg-blue-600 text-white font-black py-2 px-4 text-center text-xs sm:text-sm shadow-md flex justify-center items-center gap-2">
+            <span>📍 الفرع النشط حالياً:</span>
+            <span class="underline" x-text="getBranchName()"></span>
+        </div>
+
+        <!-- المحتوى الرئيسي -->
         <main class="max-w-7xl mx-auto px-3 sm:px-4 py-6 space-y-6 w-full flex-1">
             
+            <!-- لوحة أرشيف التواريخ والأيام (خاص بالمهندس فقط) -->
             <div x-show="currentUser.role === 'engineer'" class="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div class="flex items-center gap-3">
                     <span class="text-xl">🗄️</span>
                     <div>
-                        <h3 class="text-xs font-black text-slate-400">نظام الأرشفة التاريخي والتحكم باليوم:</h3>
-                        <p class="text-xs font-bold text-slate-200 mt-0.5" x-text="viewingPastDate ? 'أنت تستعرض الآن أرشيف يوم: ' + selectedArchiveDate : 'تعرض حالياً: وجبة اليوم الحالي (تصفير تلقائي كل يوم)'"></p>
+                        <h3 class="text-xs font-black text-slate-400">نظام الأرشفة التاريخي والتحكم باليوم للفرع الحالي:</h3>
+                        <p class="text-xs font-bold text-slate-200 mt-0.5" x-text="viewingPastDate ? 'أنت تستعرض الآن أرشيف يوم: ' + selectedArchiveDate : 'تعرض حالياً: وجبة اليوم الحالي للفرع (تصفير تلقائي كل يوم)'"></p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 w-full sm:w-auto">
@@ -77,7 +137,9 @@
                 </div>
             </div>
 
+            <!-- لوحة تحليلات الإنتاجية والسرعة الذكية (مخفية في الأرشيف) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4" x-show="!viewingPastDate">
+                <!-- كرت السرعة والكفاءة الإنتاجية -->
                 <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700 space-y-3">
                     <h3 class="text-xs font-black text-blue-400 flex items-center gap-1.5">⚡ ملخص كفاءة آليات الموقع اليوم:</h3>
                     <div class="grid grid-cols-2 gap-3">
@@ -92,6 +154,7 @@
                     </div>
                 </div>
 
+                <!-- كرت معدل سرعة الحمولات وزمن الدورة -->
                 <div class="bg-slate-800/60 p-4 rounded-2xl border border-slate-700 space-y-2">
                     <h3 class="text-xs font-black text-amber-400">⏱️ معدل توقيت سرعة النقل وزمن الدورة (Cycle Time):</h3>
                     <p class="text-[11px] text-slate-400 font-medium">يتم احتساب متوسط الوقت المستغرق لكل رحلة بناءً على فارق التوقيت التلقائي:</p>
@@ -102,9 +165,10 @@
                 </div>
             </div>
 
+            <!-- حالة المادة الحالية (تختفي في وضع الأرشيف) -->
             <div x-show="!viewingPastDate" class="bg-gradient-to-r from-blue-700 to-indigo-800 p-4 sm:p-5 rounded-2xl text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-blue-600/30">
                 <div>
-                    <h3 class="text-xs font-bold text-blue-200 uppercase tracking-wider">📋 مادة التحميل النشطة بالموقع (سحابي):</h3>
+                    <h3 class="text-xs font-bold text-blue-200 uppercase tracking-wider">📋 مادة التحميل النشطة بالفرع الحالي (سحابي):</h3>
                     <p class="text-xl sm:text-2xl font-black text-white mt-0.5" x-text="currentMaterial"></p>
                 </div>
                 <div class="flex flex-wrap gap-1.5 w-full md:w-auto" x-show="currentUser.role === 'engineer'">
@@ -117,6 +181,7 @@
                 </div>
             </div>
 
+            <!-- كروت الإحصائيات العامة -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-700/60">
                     <span class="text-slate-400 font-bold text-xs block" x-text="viewingPastDate ? 'إجمالي نقلات هذا اليوم الأرشيفي' : 'إجمالي النقلات لليوم الحالي'"></span>
@@ -127,13 +192,14 @@
                     <span class="text-2xl font-black text-amber-400 mt-1 block" x-text="getTotalVolume() + ' م³'">0 م³</span>
                 </div>
                 <div class="bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-700/60">
-                    <span class="text-slate-400 font-bold text-xs block">القلابات المسجلة بالنظام</span>
+                    <span class="text-slate-400 font-bold text-xs block">القلابات المسجلة بالفرع الحالي</span>
                     <span class="text-3xl font-black text-emerald-400 mt-1 block" x-text="trucks.length">0</span>
                 </div>
             </div>
 
+            <!-- إدارة القلابات للمهندس (تختفي في وضع الأرشيف) -->
             <div x-show="currentUser.role === 'engineer' && !viewingPastDate" class="bg-slate-800 p-4 sm:p-6 rounded-2xl border border-slate-700 space-y-4">
-                <h2 class="text-xs sm:text-sm font-black text-slate-200">🛠️ إدارة اسطول القلابات (خاص بالمهندس)</h2>
+                <h2 class="text-xs sm:text-sm font-black text-slate-200">🛠️ إدارة اسطول القلابات للفرع الحالي (خاص بالمهندس)</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
                     <div>
                         <label class="block text-[11px] font-bold text-slate-400 mb-1">رقم لوحة القلاب:</label>
@@ -148,14 +214,15 @@
                         <input type="number" x-model.number="truckForm.capacity" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     <div class="flex gap-2">
-                        <button @click="saveTruck()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black p-2.5 rounded-xl text-xs transition-all" x-text="truckForm.id ? 'تحديث الفني' : 'إضافة قلاب سحابي'"></button>
+                        <button @click="saveTruck()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-black p-2.5 rounded-xl text-xs transition-all" x-text="truckForm.id ? 'تحديث الفني' : 'إضافة قلاب للفرع'"></button>
                         <button x-show="truckForm.id" @click="resetTruckForm()" class="bg-slate-700 text-slate-300 p-2.5 rounded-xl text-xs">إلغاء</button>
                     </div>
                 </div>
             </div>
 
+            <!-- أزرار الحمولات الميدانية السريعة للمراقب (تختفي في وضع الأرشيف التاريخي) -->
             <div class="space-y-3" x-show="!viewingPastDate">
-                <h2 class="text-[11px] font-black text-slate-400 uppercase tracking-wider">🦺 تسجيل حمولة بضغطة واحدة:</h2>
+                <h2 class="text-[11px] font-black text-slate-400 uppercase tracking-wider">🦺 تسجيل حمولة بضغطة واحدة بالفرع الحالي:</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                     <template x-for="truck in trucks" :key="truck.id">
                         <div class="bg-slate-800 rounded-xl border border-slate-700/80 p-3.5 relative flex flex-row sm:flex-col justify-between items-center sm:items-start gap-4 sm:h-32 group">
@@ -188,6 +255,7 @@
                 </div>
             </div>
 
+            <!-- نافذة منبثقة لتعديل بيانات تفاصيل النقلة (خاص بالمهندس) -->
             <div x-show="editingLoadData" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                 <div class="bg-slate-800 border border-slate-700 max-w-sm w-full rounded-2xl p-5 space-y-4 shadow-2xl">
                     <h3 class="font-black text-sm text-white border-b border-slate-700 pb-2">✏️ تعديل تفاصيل النقلة سحابياً</h3>
@@ -220,17 +288,19 @@
                 </div>
             </div>
 
+            <!-- جدول السجلات السحابي للفرع الحالي -->
             <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
                 <div class="p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-800/40 border-b border-slate-700">
                     <div>
-                        <h2 class="font-black text-white text-sm sm:text-base">📊 سجل حركة النقل العام الفورية والمزامنة</h2>
-                        <p class="text-[11px] text-slate-400 mt-0.5" x-text="viewingPastDate ? 'أنت تستعرض السجلات الموثقة لليوم المؤرشف فقط.' : 'يتم تحديث الجدول تلقائياً وبشكل حي لجميع الأجهزة الميدانية الحالية.'"></p>
+                        <h2 class="font-black text-white text-sm sm:text-base">📊 سجل حركة النقل المزامنة للفرع الحالي</h2>
+                        <p class="text-[11px] text-slate-400 mt-0.5" x-text="viewingPastDate ? 'أنت تستعرض السجلات الموثقة لليوم المؤرشف فقط في هذا الفرع.' : 'يتم تحديث الجدول تلقائياً وبشكل حي لجميع الأجهزة النشطة داخل هذا الفرع.'"></p>
                     </div>
                     <button x-show="currentUser.role === 'engineer'" @click="exportToExcel()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg transition-all">
-                        <span>📥 تصدير كشف حساب ممتاز (Excel)</span>
+                        <span>📥 تصدير كشف فرع مستقل (Excel)</span>
                     </button>
                 </div>
 
+                <!-- نسخة الكمبيوتر -->
                 <div class="hidden md:block overflow-x-auto">
                     <table class="w-full text-right border-collapse">
                         <thead>
@@ -271,6 +341,7 @@
                     </table>
                 </div>
 
+                <!-- نسخة الهاتف الجوال -->
                 <div class="block md:hidden divide-y divide-slate-700/60 bg-slate-900/30">
                     <template x-for="(load, index) in filteredLoads" :key="load.id || index">
                         <div class="p-4 space-y-2 text-xs font-bold">
@@ -298,11 +369,12 @@
                     </template>
                 </div>
 
-                <div x-show="filteredLoads.length === 0" class="p-12 text-center text-slate-500 text-sm font-normal">لا توجد سجلات سحابية مسجلة حالياً في هذا اليوم.</div>
+                <div x-show="filteredLoads.length === 0" class="p-12 text-center text-slate-500 text-sm font-normal">لا توجد سجلات سحابية مسجلة حالياً في هذا اليوم للفرع النشط.</div>
             </div>
         </main>
     </div>
 
+    <!-- 💡 الجزء البرمجي الذكي المطور متكامل الفروع والمزامنة والتحليل -->
     <script>
         window.loadTrackCloudApp = function() {
             return {
@@ -310,13 +382,19 @@
                 username: '',
                 isLoggedIn: false,
                 currentUser: { name: '', role: '' },
+                selectedBranch: '', // الفرع النشط حالياً: 'taj_din' أو 'nafafsha' أو 'zor'
                 materials: ['سبيس', 'حصى خابط', 'دفان ترابي', 'مزيج كونكريت'],
                 currentMaterial: 'سبيس',
                 trucks: [],
-                allCloudLoads: [], // يحتوي على الحمولات السحابية بالكامل
-                filteredLoads: [], // يعرض حمولات اليوم المختار فقط (الأرشفة)
+                allCloudLoads: [], // يحتوي على الحمولات للفرع النشط فقط
+                filteredLoads: [], // حمولات اليوم المختار للفرع النشط فقط (الأرشفة)
                 truckForm: { id: null, number: '', driver: '', capacity: 12 },
                 
+                // إلغاء تفعيل المشتركين لإتاحة الانتقال السلس بين الفروع
+                trucksUnsubscribe: null,
+                loadsUnsubscribe: null,
+                settingsUnsubscribe: null,
+
                 // إدارة أرشفة الأيام التاريخية
                 archiveDateInput: '',
                 selectedArchiveDate: '',
@@ -331,7 +409,7 @@
                 db: null,
 
                 initFirebase() {
-                    // بيانات Firebase الحقيقية للمشروع الخاص بك
+                    // بيانات Firebase الخاصة بمشروعك
                     var firebaseConfig = {
                         apiKey: "AIzaSyB_gZyGGMeNg_jLIo1YbQ9tfmHyTdBBebs",
                         authDomain: "trackss-pro.firebaseapp.com",
@@ -347,54 +425,98 @@
                         firebase.initializeApp(firebaseConfig);
                         this.db = firebase.firestore();
 
-                        // تعيين تاريخ اليوم الافتراضي في حقل الإدخال
+                        // تعيين تاريخ اليوم الافتراضي
                         var today = new Date();
                         this.archiveDateInput = today.toISOString().split('T')[0];
                         this.selectedArchiveDate = today.toLocaleDateString('ar-EG');
-
-                        // مزامنة حية وفورية للقلابات بين جميع الحواسيب والهواتف
-                        this.db.collection("trucks").onSnapshot((snapshot) => {
-                            this.trucks = [];
-                            snapshot.forEach((doc) => {
-                                this.trucks.push(Object.assign({ id: doc.id }, doc.data()));
-                            });
-                        });
-
-                        // المزامنة الحية للحمولات وجدولة وتصفية البيانات أوتوماتيكياً (الأرشيف الحي)
-                        this.db.collection("loads").orderBy("timestamp", "asc").onSnapshot((snapshot) => {
-                            this.allCloudLoads = [];
-                            snapshot.forEach((doc) => {
-                                this.allCloudLoads.push(Object.assign({ id: doc.id }, doc.data()));
-                            });
-                            // إعادة تشغيل التصفية والحساب الذكي فور حدوث أي تعديل بالسحابة
-                            this.filterAndCalculateLoads();
-                        });
-
-                        // مزامنة المادة النشطة بالموقع
-                        this.db.collection("siteSettings").onSnapshot((snapshot) => {
-                            snapshot.forEach((doc) => {
-                                if (doc.id === "current") {
-                                    this.currentMaterial = doc.data().material;
-                                }
-                            });
-                        });
                     } catch (error) {
                         console.error("Firebase Error: ", error);
                     }
                 },
 
+                // تغيير الفرع وإعداد المزامنة الحية المخصصة
+                selectBranch(branchKey) {
+                    this.selectedBranch = branchKey;
+                    this.setupBranchListeners();
+                },
+
+                setupBranchListeners() {
+                    // 1. إلغاء المشتركين القدامى لعدم تداخل البيانات عند التبديل
+                    if (this.trucksUnsubscribe) this.trucksUnsubscribe();
+                    if (this.loadsUnsubscribe) this.loadsUnsubscribe();
+                    if (this.settingsUnsubscribe) this.settingsUnsubscribe();
+
+                    // 2. تصفير الحقول مؤقتاً لتجنب الوميض المزعج
+                    this.trucks = [];
+                    this.allCloudLoads = [];
+                    this.filteredLoads = [];
+
+                    // 3. المزامنة الحية للقلابات المخصصة للفرع المحدد
+                    // (في حال كان الفرع تاج الدين، يتم سحب القلابات بدون فرع أيضاً كضمان للبيانات السابقة)
+                    this.trucksUnsubscribe = this.db.collection("trucks").onSnapshot((snapshot) => {
+                        this.trucks = [];
+                        snapshot.forEach((doc) => {
+                            let data = doc.data();
+                            let bId = data.branchId || 'taj_din'; 
+                            if (bId === this.selectedBranch) {
+                                this.trucks.push(Object.assign({ id: doc.id }, data));
+                            }
+                        });
+                    });
+
+                    // 4. المزامنة الحية للحمولات المخصصة للفرع
+                    this.loadsUnsubscribe = this.db.collection("loads").orderBy("timestamp", "asc").onSnapshot((snapshot) => {
+                        this.allCloudLoads = [];
+                        snapshot.forEach((doc) => {
+                            let data = doc.data();
+                            let bId = data.branchId || 'taj_din';
+                            if (bId === this.selectedBranch) {
+                                this.allCloudLoads.push(Object.assign({ id: doc.id }, data));
+                            }
+                        });
+                        this.filterAndCalculateLoads();
+                    });
+
+                    // 5. مزامنة المادة النشطة بالفرع المحدد
+                    this.settingsUnsubscribe = this.db.collection("siteSettings").onSnapshot((snapshot) => {
+                        let found = false;
+                        snapshot.forEach((doc) => {
+                            if (doc.id === this.selectedBranch) {
+                                this.currentMaterial = doc.data().material;
+                                found = true;
+                            } else if (this.selectedBranch === 'taj_din' && doc.id === "current" && !found) {
+                                this.currentMaterial = doc.data().material;
+                                found = true;
+                            }
+                        });
+                        if (!found) {
+                            this.currentMaterial = 'سبيس'; // مادة افتراضية في الفروع الجديدة
+                        }
+                    });
+                },
+
+                getBranchName() {
+                    if (this.selectedBranch === 'taj_din') return 'مقلع تراب تاج الدين 🌾';
+                    if (this.selectedBranch === 'nafafsha') return 'مقلع تراب النفافشة (المجهز هاتف) 📞';
+                    if (this.selectedBranch === 'zor') return 'مقلع تراب منطقة الزور 🚧';
+                    return '';
+                },
+
+                changeBranch() {
+                    this.selectedBranch = '';
+                    this.resetToCurrentDay();
+                },
+
                 filterAndCalculateLoads() {
-                    // 1. تصفية الحمولات لعرض اليوم المختار فقط (نظام الأرشفة الذكي)
+                    // تصفية الحمولات لعرض اليوم المختار فقط (نظام الأرشفة الذكي للفرع)
                     this.filteredLoads = this.allCloudLoads.filter(load => {
                         return load.date === this.selectedArchiveDate;
                     });
 
-                    // قلب الترتيب ليعرض الأحدث في أعلى الجدول دائماً
-                    this.filteredLoads.reverse();
+                    this.filteredLoads.reverse(); // الأحدث للأعلى
 
-                    // 2. احتساب أوقات زمن الدورة (Cycle Time) لكل آلية
+                    // احتساب زمن الدورة (Cycle Time) لكل آلية بالفرع
                     var truckGroups = {};
-                    // نقوم بمعالجة الحمولات مرتبة زمنياً من الأقدم للأحدث لحساب الفوارق بدقة
                     var chronologicalLoads = [...this.allCloudLoads].sort((a,b) => a.timestamp - b.timestamp);
                     
                     chronologicalLoads.forEach(load => {
@@ -403,21 +525,18 @@
                         }
                         var lastLoad = truckGroups[load.truckNumber][truckGroups[load.truckNumber].length - 1];
                         if (lastLoad && lastLoad.date === load.date) {
-                            // حساب الفارق بالدقائق بين النقلة الحالية والسابقة في نفس اليوم
                             var diffMs = load.timestamp - lastLoad.timestamp;
                             load.cycleTime = Math.round(diffMs / 60000);
                         } else {
-                            load.cycleTime = null; // النقلة الأولى في اليوم لا تملك دورة سابقة
+                            load.cycleTime = null;
                         }
                         truckGroups[load.truckNumber].push(load);
                     });
 
-                    // 3. احتساب الإحصائيات والموجز (الأكثر والأقل والأزمنة)
                     this.calculateAdvancedStats();
                 },
 
                 calculateAdvancedStats() {
-                    // نعتمد الإحصائيات على الوجبة المعروضة حالياً بالصفحة
                     if (this.filteredLoads.length === 0) {
                         this.stats = { mostActiveTruck: '', leastActiveTruck: '', averageCycleTime: 0 };
                         return;
@@ -428,16 +547,13 @@
                     var cycleCount = 0;
 
                     this.filteredLoads.forEach(l => {
-                        // حساب التكرارات للآليات
                         counts[l.driverName] = (counts[l.driverName] || 0) + 1;
-                        // جمع أوقات الدورات المحسوبة
                         if (l.cycleTime) {
                             totalCycleTime += l.cycleTime;
                             cycleCount++;
                         }
                     });
 
-                    // استخراج الأكثر والأقل حركة
                     var sortedTrucks = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
                     
                     this.stats.mostActiveTruck = sortedTrucks[0] ? `${sortedTrucks[0]} (${counts[sortedTrucks[0]]} نقلة)` : '';
@@ -469,7 +585,7 @@
                     var timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                     var dateStr = now.toLocaleDateString('ar-EG');
                     
-                    // حساب رقم النقلة بناءً على السجل التاريخي لليوم الحالي للقلاب
+                    // حساب رقم نقلة اليوم التراكمية في هذا الفرع حصراً
                     var currentTruckTodayLoads = this.allCloudLoads.filter(l => l.truckNumber === truck.number && l.date === dateStr).length;
                     var nextLoadNumber = currentTruckTodayLoads + 1;
 
@@ -482,32 +598,30 @@
                         time: timeStr,
                         date: dateStr,
                         recordedBy: this.currentUser.name,
-                        timestamp: now.getTime()
+                        timestamp: now.getTime(),
+                        branchId: this.selectedBranch // تعيين الفرع
                     };
 
                     this.db.collection("loads").add(newLoad).catch((e) => {
-                        console.error("Local save fallback error: ", e);
+                        console.error("Cloud save error: ", e);
                     });
                 },
 
-                // حذف نقلة معينة من السحابة (خاص بالمهندس)
                 deleteLoadFromCloud(id) {
                     if (this.currentUser.role !== 'engineer') return;
-                    if (confirm("🚨 هل أنت متأكد من حذف هذه النقلة تماماً من قاعدة البيانات السحابية الحية؟")) {
+                    if (confirm("🚨 هل أنت متأكد من حذف هذه النقلة تماماً من الفرع الحالي؟")) {
                         this.db.collection("loads").doc(id).delete()
                         .then(() => alert("تم حذف النقلة وتحديث الأرقام بنجاح."))
                         .catch(err => alert("فشل الحذف: " + err));
                     }
                 },
 
-                // فتح المودال وتجهيز بيانات التعديل لنقلة معينة (خاص بالمهندس)
                 openEditLoadModal(load) {
                     if (this.currentUser.role !== 'engineer') return;
                     this.loadEditForm = Object.assign({}, load);
                     this.editingLoadData = true;
                 },
 
-                // تحديث بيانات الكمية والسيارة في Firestore
                 updateLoadInCloud() {
                     if (this.currentUser.role !== 'engineer') return;
                     if (!this.loadEditForm.truckNumber.trim() || !this.loadEditForm.driverName.trim() || !this.loadEditForm.capacity) {
@@ -523,7 +637,7 @@
                     })
                     .then(() => {
                         this.editingLoadData = false;
-                        alert("تم تحديث وتعديل تفاصيل الحمولة السحابية بنجاح! 🎉");
+                        alert("تم تعديل وتحديث تفاصيل الحمولة سحابياً بنجاح! 🎉");
                     })
                     .catch(err => alert("خطأ أثناء التعديل: " + err));
                 },
@@ -559,13 +673,21 @@
                     this.pinCode = '';
                     this.username = '';
                     this.currentUser = { name: '', role: '' };
+                    this.selectedBranch = '';
+                    if (this.trucksUnsubscribe) this.trucksUnsubscribe();
+                    if (this.loadsUnsubscribe) this.loadsUnsubscribe();
+                    if (this.settingsUnsubscribe) this.settingsUnsubscribe();
                     this.resetToCurrentDay();
                 },
 
                 changeMaterial(material) {
                     if (this.currentUser.role !== 'engineer') return;
                     this.currentMaterial = material;
-                    this.db.collection("siteSettings").doc("current").set({ material: material }).catch(function(){});
+                    // الحفظ داخل إعداد المادة للفرع الفردي لضمان استقلال الفروع
+                    this.db.collection("siteSettings").doc(this.selectedBranch).set({ material: material }).catch(function(){});
+                    if (this.selectedBranch === 'taj_din') {
+                        this.db.collection("siteSettings").doc("current").set({ material: material }).catch(function(){});
+                    }
                 },
 
                 saveTruck() {
@@ -578,7 +700,8 @@
                     var truckData = {
                         number: this.truckForm.number,
                         driver: this.truckForm.driver,
-                        capacity: Number(this.truckForm.capacity)
+                        capacity: Number(this.truckForm.capacity),
+                        branchId: this.selectedBranch // حجز القلاب للفرع
                     };
 
                     if (this.truckForm.id) {
@@ -641,7 +764,10 @@
 
                     var workbook = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(workbook, worksheet, "تقرير الحمولات والمواد");
-                    XLSX.writeFile(workbook, `كشف_حساب_حمولات_${this.selectedArchiveDate.replace(/\//g, '-')}.xlsx`);
+                    
+                    // توليد اسم ملف مميز باسم الفرع والتاريخ
+                    var safeBranchName = this.getBranchName().replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '_');
+                    XLSX.writeFile(workbook, `كشف_حمولات_${safeBranchName}_${this.selectedArchiveDate.replace(/\//g, '-')}.xlsx`);
                 }
             }
         }
